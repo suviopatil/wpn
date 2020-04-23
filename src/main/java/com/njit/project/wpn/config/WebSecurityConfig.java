@@ -1,4 +1,4 @@
-package com.njit.project.wpn.config;
+/*package com.njit.project.wpn.config;
 
 
 import org.springframework.context.annotation.Bean;
@@ -22,7 +22,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 				.anyRequest().authenticated()
 				.and()
 			.formLogin()
-				.loginPage("/login").loginProcessingUrl("/j_spring_security_check")
+				.loginPage("/login")
 				.permitAll()
 				.and()
 			.logout()
@@ -42,3 +42,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		return new InMemoryUserDetailsManager(user);
 	}
 }
+*/

@@ -3,7 +3,6 @@ package com.njit.project.wpn.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.njit.project.wpn.entity.User;
 import com.njit.project.wpn.entity.UserAccount;
 import com.njit.project.wpn.service.BankingService;
 
@@ -100,12 +98,19 @@ public class AccountController {
 		return bankingService.getUserDetails();
 	}
 	
-	@RequestMapping(value = "/addNewUserAccount", method = RequestMethod.POST, consumes="application/json")
+/*	@RequestMapping(value = "/addNewUserAccount", method = RequestMethod.POST, consumes="application/json")
 	public ResponseEntity<?> addBankDetails(
 			@RequestBody User userAccount,
 			@RequestParam(value = "email") String email) {
 
 		return new ResponseEntity<>(userAccount,HttpStatus.OK);
-	}
+	}*/
 
+	@RequestMapping(value = "/login", method = RequestMethod.GET)
+	public ResponseEntity<?> login(
+			@RequestParam(value = "phoneNumber") String phoneNumber,
+			@RequestParam(value = "password") String password) throws Exception {
+		
+		return bankingService.login(phoneNumber, password);
+	}
 }

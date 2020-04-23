@@ -177,6 +177,18 @@ public class BankingService {
 		return new ResponseEntity<>(userAccount,HttpStatus.OK);
 	}
 	
+	public ResponseEntity<?> login(String phoneNumber, String password) {
+		JSONObject response = new JSONObject();
+		response.put("response", "Successfully logged in");
+		
+		UserAccount userAccount = userAcctRepo.findByPhNoAndPwd(phoneNumber, password);
+		if(ObjectUtils.isEmpty(userAccount)) {
+			response.put("response", "User Not Found");
+			return new ResponseEntity<>(response.toString(), HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<>(response.toString(), HttpStatus.OK);
+	}
+	
 	private List<TransactionResult> txnResCommonMethod(List<SendTransaction> sendTxn, List<RequestTransaction> reqTxn){
 		List<TransactionResult> txnResList = new ArrayList<>();
 		for (int i = 0; i < sendTxn.size(); i++) {
@@ -195,5 +207,6 @@ public class BankingService {
 		}
 		return txnResList;
 	}
+
 
 }

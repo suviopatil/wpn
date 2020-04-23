@@ -26,4 +26,6 @@ public interface UserAccountRepo extends JpaRepository<UserAccount, Long>{
 	@Query(value="SELECT * FROM USERACCOUNT WHERE SSN = ?1 OR PHONENO = ?2 OR EMAIL = ?3 ", nativeQuery = true)
 	UserAccount findByPhNoOrEmailorSsn(String ssn, String phoneNo, String emailId);
 
+	@Query(value="SELECT * FROM USERACCOUNT WHERE PHONENO = ?1 OR PASSWORD = ?2 ", nativeQuery = true)
+	UserAccount findByPhNoAndPwd(String phoneNo, String password);
 }
