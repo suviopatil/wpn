@@ -15,6 +15,6 @@ public interface ReqTransactionRepo extends JpaRepository<RequestTransaction, Lo
 	@Query(value="SELECT * FROM REQUEST_TRANSACTION WHERE RTDATETIME BETWEEN ?1 AND ?2", nativeQuery = true)
 	List<RequestTransaction> findReqTransactions(String fromDate, String toDate);
 	
-	@Query(value="SELECT U.NAME, R.RTAMOUNT FROM REQUEST_TRANSACTION R, FROMUSER F, USERACCOUNT U WHERE R.RT_ID = F.RTID AND R.SSN=U.SSN AND (F.IDENTIFIER=?1 OR F.IDENTIFIER=?2) AND R.STATUS = 'Pending';", nativeQuery = true)
+	@Query(value="SELECT U.NAME, R.RTAMOUNT FROM REQUEST_TRANSACTION R, FROMUSER F, USERACCOUNT U WHERE R.RT_ID = F.RTID AND R.SSN=U.SSN AND F.IDENTIFIER=?1 AND R.STATUS = 'Pending'", nativeQuery = true)
 	List<String> findReqTransactionsByIdentifier(String identifier);
 }

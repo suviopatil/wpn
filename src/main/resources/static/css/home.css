@@ -87,3 +87,11 @@ body {
 	font-weight: 800;
 	font-size: 0.8em;
 }
+
+table  {
+    border-collapse: collapse;
+}
+ 
+table td, th  {
+    padding: 5px;
+}

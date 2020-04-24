@@ -18,6 +18,7 @@ import com.njit.project.wpn.entity.HasAdditional;
 import com.njit.project.wpn.entity.RequestTransaction;
 import com.njit.project.wpn.entity.SendTransaction;
 import com.njit.project.wpn.entity.UserAccount;
+import com.njit.project.wpn.mapping.PendingRequest;
 import com.njit.project.wpn.mapping.TransactionResult;
 import com.njit.project.wpn.repository.BankAccountRepo;
 import com.njit.project.wpn.repository.EmailRepo;
@@ -208,7 +209,14 @@ public class BankingService {
 	}
 
 	public ResponseEntity<?> getRequests(String identifier) {
-		List<String> requestTransactions = reqTranxRepo.findReqTransactionsByIdentifier(identifier);
-		return new ResponseEntity<>(requestTransactions, HttpStatus.OK);
+		List<String> pendingRequests = reqTranxRepo.findReqTransactionsByIdentifier(identifier);
+		List<PendingRequest> response = new ArrayList<>();
+		for (int i = 0; i < pendingRequests.size(); i++) {
+			PendingRequest pendingRequest = new PendingRequest();
+			pendingRequest.setName(pendingRequests.get(i).split(",",0)[0]);
+			pendingRequest.setAmount(pendingRequests.get(i).split(",",0)[1]);
+			response.add(pendingRequest);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }

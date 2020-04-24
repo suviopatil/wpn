@@ -1,6 +1,10 @@
 var app = angular.module("home", []);
 app.controller("homeController", function($scope, $http, $window) {
 
+	$scope.reqTxns = [];
+	
+	getRequests();
+	
 	$scope.openCity = function(evt, cityName) {
 		var i, tabcontent, tablinks;
 		tabcontent = document.getElementsByClassName("tabcontent");
@@ -82,10 +86,13 @@ app.controller("homeController", function($scope, $http, $window) {
 	function getRequests() {
         $http({
             method: 'GET',
+            params : {
+				"identifier" : "8457509233"
+			},
             url: '/wpn/getRequests'
         }).then(
             function(res) { // success
-                $scope.employees = res.data;
+                $scope.reqTxns = res.data;
             },
             function(res) { // error
                 console.log("Error: " + res.status + " : " + res.data);
