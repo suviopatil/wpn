@@ -61,7 +61,7 @@ app.controller("UserController", function($scope, $http) {
     function _success(res) {
     	 var data = res.data;
          var status = res.status;
-         alert("Success: " + status + ":" + data);
+         $window.location.href = '/home';
     }
  
     function _error(res) {

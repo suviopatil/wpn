@@ -47,32 +47,32 @@ public class AccountController {
 
 	@RequestMapping(value = "/sendMoney", method = RequestMethod.POST)
 	public ResponseEntity<?> sendMoney(
-			@RequestParam(value = "senderSsn") String senderSsn,
-			@RequestParam(value = "identifier") String identifier,
+			@RequestParam(value = "senderIdentifier") String senderIdentifier,
+			@RequestParam(value = "receiverIdentifier") String receiverIdentifier,
 			@RequestParam(value = "amountToSend") String amountToSend,
-			@RequestParam(value = "memo") String memo) {
+			@RequestParam(value = "memo", required = false) String memo) {
 
-		return bankingService.sendMoney(senderSsn, identifier, amountToSend, memo);
+		return bankingService.sendMoney(senderIdentifier, receiverIdentifier, amountToSend, memo);
 	}
 	
 	@RequestMapping(value = "/sendRequestedMoney", method = RequestMethod.POST)
 	public ResponseEntity<?> sendRequestedMoney(
-			@RequestParam(value = "senderSsn") String senderSsn,
-			@RequestParam(value = "identifier") String identifier,
+			@RequestParam(value = "senderIdentifier") String senderIdentifier,
+			@RequestParam(value = "receiverIdentifier") String receiverIdentifier,
 			@RequestParam(value = "amountToSend") String amountToSend,
 			@RequestParam(value = "rtId") Long rtId) {
 
-		return bankingService.sendRequestedMoney(senderSsn, identifier, amountToSend, rtId);
+		return bankingService.sendRequestedMoney(senderIdentifier, receiverIdentifier, amountToSend, rtId);
 	}
 	
 	@RequestMapping(value = "/requestMoney", method = RequestMethod.POST)
 	public ResponseEntity<?> requestMoney(
-			@RequestParam(value = "identifier") String identifier,
-			@RequestParam(value = "requesterSsn") String requesterSsn,
-			@RequestParam(value = "memo") String memo,
-			@RequestParam(value = "reqAmount") String reqAmount) {
+			@RequestParam(value = "requesteeIdentifier") String requesteeIdentifier,
+			@RequestParam(value = "requestorIdentifier") String requestorIdentifier,
+			@RequestParam(value = "rtMemo", required = false) String rtMemo,
+			@RequestParam(value = "rtAmount") String rtAmount) {
 
-		return bankingService.requestMoney(identifier, requesterSsn, memo, reqAmount);
+		return bankingService.requestMoney(requesteeIdentifier, requestorIdentifier, rtMemo, rtAmount);
 	}
 
 	@RequestMapping(value = "/searchTransactions", method = RequestMethod.GET)
@@ -89,6 +89,13 @@ public class AccountController {
 			throws Exception {
 
 		return bankingService.getStatement(fromDate, toDate);
+	}
+	
+	@RequestMapping(value = "/getRequests", method = RequestMethod.GET)
+	public ResponseEntity<?> getRequests(
+			@RequestParam(value = "identifier") String identifier){
+
+		return bankingService.getRequests(identifier);
 	}
 	
 	@RequestMapping(value = "/getUserDetails", method = RequestMethod.GET)

@@ -6,7 +6,6 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,6 +21,7 @@ import com.njit.project.wpn.entity.UserAccount;
 import com.njit.project.wpn.mapping.TransactionResult;
 import com.njit.project.wpn.repository.BankAccountRepo;
 import com.njit.project.wpn.repository.EmailRepo;
+import com.njit.project.wpn.repository.FromUserRepo;
 import com.njit.project.wpn.repository.HasAdditionalRepo;
 import com.njit.project.wpn.repository.ReqTransactionRepo;
 import com.njit.project.wpn.repository.SentTransactionRepo;
@@ -52,57 +52,62 @@ public class BankingService {
 	@Autowired
 	private HasAdditionalRepo hasAdditionalRepo;
 	
+	@Autowired
+	private FromUserRepo fromUserRepo;
+	
 	@Transactional
-	public ResponseEntity<?> sendMoney(String senderSsn, String identifier, String amountToSend, String memo) {
-		UserAccount reciepentUsers = null;
+	public ResponseEntity<?> sendMoney(String senderIdentifier, String receiverIdentifier, String amountToSend, String memo) {
+		
 		String currentUserBalance = null;
 		
-		if(identifier.contains("@")) {
-			String receiverSSN = emailRepo.findSsnByEmail(identifier);
-			reciepentUsers = userAcctRepo.findUserBySSN(receiverSSN);
-		}else {
-			reciepentUsers = userAcctRepo.findUserByPhoneNumber(identifier);
-		}
-
+		UserAccount reciepentUsers = getUserByIdentifier(receiverIdentifier);
 		if (!ObjectUtils.isEmpty(reciepentUsers)) {
-			UserAccount sender = userAcctRepo.findUserBySSN(senderSsn);
-			currentUserBalance = sender.getAccountBalance();
+			UserAccount senderUser = getUserByIdentifier(senderIdentifier);
+			currentUserBalance = senderUser.getAccountBalance();
 			Double senderUpdatedBalance = Double.valueOf(currentUserBalance) - Double.valueOf(amountToSend);
-			WPNRepo.updateAccountBalance(senderUpdatedBalance.toString(), senderSsn);
+			WPNRepo.updateAccountBalance(senderUpdatedBalance.toString(), senderUser.getSsn());
 			Double receiverUpdatedBalance = Double.valueOf(reciepentUsers.getAccountBalance()) + Double.valueOf(amountToSend);
 			WPNRepo.updateAccountBalance(receiverUpdatedBalance.toString(), reciepentUsers.getSsn());
-			WPNRepo.saveSentTransaction(sender.getSsn(), amountToSend, memo);
-			return new ResponseEntity<>("Amount Successfully sent", HttpStatus.OK);
+			WPNRepo.saveSentTransaction(senderUser.getSsn(), amountToSend, memo);
+			return new ResponseEntity<>(response("Amount Successfully sent"), HttpStatus.OK);
 		} else {
-			String errorMessage = "Couldn't send amount";
-			return new ResponseEntity<String>(errorMessage, HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(response("Couldn't send amount"), HttpStatus.NOT_FOUND);
 		}
 
 	}
 	
+	private UserAccount getUserByIdentifier(String identifier) {
+		UserAccount users = null;
+		if(identifier.contains("@")) {
+			String receiverSSN = emailRepo.findSsnByEmail(identifier);
+			users = userAcctRepo.findUserBySSN(receiverSSN);
+		}else {
+			users = userAcctRepo.findUserByPhoneNumber(identifier);
+		}
+		return users;
+	}
 	@Transactional
-	public ResponseEntity<?> sendRequestedMoney(String senderSsn, String identifier, String amountToSend, Long rtId) {
-		sendMoney(senderSsn, identifier, amountToSend, "Welcome");
+	public ResponseEntity<?> sendRequestedMoney(String senderIdentifier, String receiverIdentifier, String amountToSend, Long rtId) {
+		sendMoney(senderIdentifier, receiverIdentifier, amountToSend, "Welcome");
 		WPNRepo.updateReqTrnxStatus("Confirmed",rtId);
 		
-		return new ResponseEntity<>("Amount Successfully sent", HttpStatus.OK);
+		return new ResponseEntity<>(response("Amount Successfully sent"), HttpStatus.OK);
 	}
 
 	@Transactional
-	public ResponseEntity<?> requestMoney(String identifier, String requesterSsn, String memo, String reqAmount) {
-
+	public ResponseEntity<?> requestMoney(String requesteeIdentifier, String requestorIdentifier, String memo, String reqAmount) {
 		LocalTime time = LocalTime.now();
 		Long rtId = (long) time.getNano();
-		WPNRepo.saveRequestTransaction(rtId, reqAmount , memo, requesterSsn, "Pending");
-		WPNRepo.saveFromTransaction(rtId, identifier, "100");
-		
-		return new ResponseEntity<>("Amount requested Successfully", HttpStatus.OK);
+		UserAccount requestor = getUserByIdentifier(requestorIdentifier);
+		WPNRepo.saveRequestTransaction(rtId, reqAmount , memo, requestor.getSsn(), "Pending");
+		WPNRepo.saveFromTransaction(rtId, requesteeIdentifier, memo);
+		return new ResponseEntity<>(response("Amount requested Successfully"), HttpStatus.OK);
 	}
-
+	
 	public ResponseEntity<?> findTransactions(String ssn, String phoneNo, String emailId) throws Exception {
 
 		List<SendTransaction> sendTransaction = transactionRepo.findSentTransactions(ssn);
-		List<RequestTransaction> requestTransaction = reqTranxRepo.findReqTransactions(ssn);
+		List<RequestTransaction> requestTransaction = reqTranxRepo.findReqTransactionsBySsn(ssn);
 		List<TransactionResult> res = txnResCommonMethod(sendTransaction,requestTransaction);
 		
 		return new ResponseEntity<>(res, HttpStatus.OK);
@@ -126,19 +131,11 @@ public class BankingService {
 			WPNRepo.addNewUserIdentifier(userAccount.getPhoneNo());
 		}
 		HasAdditional hasAddnl = hasAdditionalRepo.findUserBySsnBidAcct(userAccount.getSsn(), userAccount.getBankId(), userAccount.getAccountNumber());
-		 JSONObject response = new JSONObject();
 		if(ObjectUtils.isEmpty(hasAddnl)) {
 			WPNRepo.hasAdditionalAcc(userAccount.getSsn(),userAccount.getBankId(),userAccount.getAccountNumber(),"true");
-
-			try {
-				response.put("response", "Account created Successfully");
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			return new ResponseEntity<String>(response.toString(), HttpStatus.OK);
+			return new ResponseEntity<>(response("Account created Successfully"), HttpStatus.OK);
 		}
-		return new ResponseEntity<String>("Account is already present", HttpStatus.OK);
+		return new ResponseEntity<>(response("Account is already present"), HttpStatus.OK);
 	}
 
 	@Transactional
@@ -146,7 +143,7 @@ public class BankingService {
 		
 		WPNRepo.addNewUserEmailId(emailId, ssn);
 		WPNRepo.addNewUserIdentifier(emailId);
-		return new ResponseEntity<String>("Account is already present", HttpStatus.OK);
+		return new ResponseEntity<>(response("EmailId added successfully"), HttpStatus.OK);
 	}	
 	
 	public ResponseEntity<?> splitAmount(String ssn, String amountToSplit, List<String> identifier) {
@@ -161,7 +158,7 @@ public class BankingService {
 			WPNRepo.saveRequestTransaction(rtId, individualSplitAmountString, "SplittingAmount", ssn, "Pending");
 			WPNRepo.saveFromTransaction(rtId, identifier.get(i), percentageString);
 		}
-		return new ResponseEntity<>("Split request was sent successfully", HttpStatus.OK);
+		return new ResponseEntity<>(response("Split request was sent successfully"), HttpStatus.OK);
 	}
 	
 	public ResponseEntity<?> getStatement(String fromDate, String toDate) {
@@ -178,15 +175,11 @@ public class BankingService {
 	}
 	
 	public ResponseEntity<?> login(String phoneNumber, String password) {
-		JSONObject response = new JSONObject();
-		response.put("response", "Successfully logged in");
-		
 		UserAccount userAccount = userAcctRepo.findByPhNoAndPwd(phoneNumber, password);
 		if(ObjectUtils.isEmpty(userAccount)) {
-			response.put("response", "User Not Found");
-			return new ResponseEntity<>(response.toString(), HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(response("User Not Found"), HttpStatus.NOT_FOUND);
 		}
-		return new ResponseEntity<>(response.toString(), HttpStatus.OK);
+		return new ResponseEntity<>(response("Successfully logged in"), HttpStatus.OK);
 	}
 	
 	private List<TransactionResult> txnResCommonMethod(List<SendTransaction> sendTxn, List<RequestTransaction> reqTxn){
@@ -208,5 +201,14 @@ public class BankingService {
 		return txnResList;
 	}
 
+	private String response(String inputResponse) {
+		JSONObject response = new JSONObject();
+		response.put("response", inputResponse);
+		return response.toString();
+	}
 
+	public ResponseEntity<?> getRequests(String identifier) {
+		List<String> requestTransactions = reqTranxRepo.findReqTransactionsByIdentifier(identifier);
+		return new ResponseEntity<>(requestTransactions, HttpStatus.OK);
+	}
 }

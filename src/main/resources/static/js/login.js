@@ -1,5 +1,5 @@
 var app = angular.module("myLogin", []);
-app.controller("LoginController", function($scope, $http) {
+app.controller("LoginController", function($scope, $http, $window) {
  
     $scope.LoginUser = function() {
     	var method = "";
@@ -18,7 +18,7 @@ app.controller("LoginController", function($scope, $http) {
     function _success(res) {
     	 var data = res.data;
          var status = res.status;
-         alert("Success: " + status + ":" + data);
+         $window.location.href = '/home';
     }
  
     function _error(res) {

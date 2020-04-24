@@ -1,0 +1,59 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	<link href='/css/home.css' rel='stylesheet' type='text/css'>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.js"></script>
+
+<script src="js/home.js"></script>
+</head>
+<body>
+<form ng-app="home" ng-controller="homeController">
+	<div class="box">
+		<div class="tab">
+			<button class="tablinks" ng-click="openCity(event, 'Send')">Send</button>
+			<button class="tablinks" ng-click="openCity(event, 'Request')">Request</button>
+			<button class="tablinks" ng-click="openCity(event, 'Split')">Split</button>
+		</div>
+		<div id="Send" class="tabcontent">
+			<input type="text" id="fromUser" class="form-control" placeholder="Enter phoneNum, email from user" ng-model="fromUser"><br>
+			<input type="text" id="toUser" class="form-control" placeholder="Enter phoneNum, email to user" ng-model="toUser"><br>
+			<input type="text" id="amount" class="form-control" placeholder="Enter amount to send" ng-model="amount"><br>
+			<input type="text" id="memo" class="form-control" placeholder="Enter memo" ng-model="memo"><br>
+			<input type="button" class="btn btn-primary" ng-click="sendMoney()" value="Send"></a>
+		</div>
+	
+		<div id="Request" class="tabcontent">
+			<input type="text" id="requestorIdentifierr" class="form-control" placeholder="Enter phoneNum, email from user" ng-model="requestorIdentifier"><br>
+			<input type="text" id="requesteeIdentifier" class="form-control" placeholder="Enter phoneNum, email to user" ng-model="requesteeIdentifier"><br>
+			<input type="text" id="rtAmount" class="form-control" placeholder="Enter amount to request" ng-model="rtAmount"><br>
+			<input type="text" id="rtMemo" class="form-control" placeholder="Enter memo" ng-model="rtMemo"><br>
+			<input type="button" class="btn btn-primary" ng-click="requestMoney()" value="Request"></a>
+		</div>
+	
+		<div id="Split" class="tabcontent">
+			<input type="text" id="phoneNumber" class="form-control" placeholder="Enter comma seperated phone number or email" ng-model="phoneNumber"><br>
+			<input type="text" id="amount" class="form-control" placeholder="Enter amount to split" ng-model="amount"><br>
+			<input type="button" class="btn btn-primary" ng-click="split()" value="Split"></a>
+		</div>
+	</div>
+	</form>
+	<form ng-app="home" ng-controller="homeController">
+		<div class="tab">
+			<button class="tablinks" ng-click="openCity(event, 'Statement')">Statement</button>
+			<button class="tablinks" ng-click="openCity(event, 'TransationHistory')">Transation History</button>
+			<button class="tablinks" ng-click="openCity(event, 'Activities')">Activities</button>
+		</div>
+		
+		<div id="Activities" class="tabcontent1">
+			<input type="button" class="btn btn-primary" ng-click="getRequests()" value="Activities"></a>
+		</div>
+	</form>
+</body>
+</html>
+
+
