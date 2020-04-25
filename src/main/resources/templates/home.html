@@ -69,7 +69,23 @@
 		</div>
 
 		<div id="TransationHistory" class="tabcontent">
-			<h1>TransationHistory</h1>
+			<input type="date" ng-model="fromDate" />
+			<input type="date" ng-model="toDate" /><br>
+			<input type="text" ng-model="txnIdentifier" /><br>
+			<input type="button" class="btn btn-primary" ng-click="getTransactions()" value="SearchTransaction"></a>
+			
+			<table border="1">
+				<tr>
+					<th>Transaction Id</th>
+					<th>Transaction Amount</th>
+					<th>Transaction Date</th>
+				</tr>
+				<tr ng-repeat="transaction in transactions">
+					<td>{{transaction.id}}</td>
+					<td>{{transaction.amount}}</td>
+					<td>{{transaction.dateTime}}</td>
+				</tr>
+			</table>
 		</div>
 
 		<div id="Statement" class="tabcontent">

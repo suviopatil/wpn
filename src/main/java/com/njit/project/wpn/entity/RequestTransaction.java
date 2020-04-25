@@ -1,7 +1,7 @@
 package com.njit.project.wpn.entity;
 
 import java.io.Serializable;
-import java.sql.Date;
+import java.sql.Timestamp;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -38,7 +38,7 @@ public class RequestTransaction implements Serializable{
 	
 	@Column(name="RTDATETIME")
 	//@Temporal(TemporalType.TIME)
-	private Date rtDateTime;
+	private Timestamp rtDateTime;
 	
 	@Column(name="RTMEMO")
 	private String rtmemo;

@@ -76,15 +76,18 @@ public class AccountController {
 	}
 
 	@RequestMapping(value = "/searchTransactions", method = RequestMethod.GET)
-	public ResponseEntity<?> getSentTransaction(@RequestParam(value = "ssn") String ssn,
-			@RequestParam(value = "phoneNo") String phoneNo, @RequestParam(value = "emailId") String emailId)
+	public ResponseEntity<?> getSentTransaction(
+			@RequestParam(value = "txnIdentifier", required = false) String txnIdentifier, 
+			@RequestParam(value = "fromDate", required = false) String fromDate,
+			@RequestParam(value = "toDate", required = false) String toDate)
 			throws Exception {
 
-		return bankingService.findTransactions(ssn, phoneNo, emailId);
+		return bankingService.findTransactions(txnIdentifier, fromDate, toDate);
 	}
 	
 	@RequestMapping(value = "/getStatement", method = RequestMethod.GET)
-	public ResponseEntity<?> getStatement(@RequestParam(value = "fromDate") String fromDate,
+	public ResponseEntity<?> getStatement(
+			@RequestParam(value = "fromDate") String fromDate,
 			@RequestParam(value = "toDate") String toDate)
 			throws Exception {
 

@@ -2,7 +2,7 @@ var app = angular.module("home", []);
 app.controller("homeController", function($scope, $http, $window) {
 
 	$scope.reqTxns = [];
-	
+	$scope.transactions = [];
 	getRequests();
 	
 	$scope.openCity = function(evt, cityName) {
@@ -99,4 +99,23 @@ app.controller("homeController", function($scope, $http, $window) {
             }
         );
     }
+	
+	$scope.getTransactions = function() {
+		$http({
+            method: 'GET',
+            url: '/wpn/searchTransactions',
+            params : {
+            	"txnIdentifier" : $scope.txnIdentifier,
+				"fromDate" : $scope.fromDate,
+				"toDate" : $scope.toDate
+			}
+        }).then(
+            function(res) { // success
+                $scope.transactions = res.data;
+            },
+            function(res) { // error
+                console.log("Error: " + res.status + " : " + res.data);
+            }
+        );
+	}
 });

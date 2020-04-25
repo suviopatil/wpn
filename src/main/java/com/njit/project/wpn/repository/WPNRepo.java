@@ -1,6 +1,8 @@
 package com.njit.project.wpn.repository;
 
+import java.sql.Timestamp;
 import java.time.LocalTime;
+import java.util.Calendar;
 import java.util.Date;
 
 import javax.persistence.EntityManager;
@@ -23,25 +25,29 @@ public class WPNRepo {
 	}
 	
 	public void saveSentTransaction(String ssn, String amountToSend, String memo) {
-		Date date = new Date();
+		Calendar calendar = Calendar.getInstance();
+		Date now = calendar.getTime();
+		Timestamp currentTimestamp = new java.sql.Timestamp(now.getTime());
 		LocalTime time = LocalTime.now();
 		String query = "INSERT INTO SEND_TRANSACTION(SSN, AMOUNT, DATETIME,TX_ID, MEMO) VALUES(?1,?2,?3,?4,?5)";
 		em.createNativeQuery(query)
 			.setParameter(1, ssn)
 			.setParameter(2, amountToSend)
-			.setParameter(3, date)
+			.setParameter(3, currentTimestamp)
 			.setParameter(4, time.getNano())
 			.setParameter(5, memo)
 			.executeUpdate();
 	}
 	
 	public void saveRequestTransaction(Long rtId, String requestedAmount, String memo, String ssn, String status) {
-		Date date = new Date();
+		Calendar calendar = Calendar.getInstance();
+		Date now = calendar.getTime();
+		Timestamp currentTimestamp = new java.sql.Timestamp(now.getTime());
 		String query = "INSERT INTO REQUEST_TRANSACTION(SSN, RTAMOUNT, RTDATETIME, RT_ID, RTMEMO, STATUS) VALUES(?1,?2,?3,?4,?5,?6)";
 		em.createNativeQuery(query)
 			.setParameter(1, ssn)
 			.setParameter(2, requestedAmount)
-			.setParameter(3, date)
+			.setParameter(3, currentTimestamp)
 			.setParameter(4, rtId)
 			.setParameter(5, memo)
 			.setParameter(6, status)

@@ -1,6 +1,7 @@
 package com.njit.project.wpn.mapping;
 
-import java.sql.Date;
+import java.sql.Timestamp;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +11,6 @@ public class TransactionResult{
 
 	private long id;
 	private String amount;
-	private Date dateTime;
+	private Timestamp dateTime;
 	
 }
