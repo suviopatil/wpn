@@ -21,20 +21,34 @@ public class AccountController {
 	@Autowired
 	private BankingService bankingService;
 
-	@RequestMapping(value = "/addNewUser", method = RequestMethod.POST, consumes="application/json")
-	public ResponseEntity<?> addNewUser(
+	@RequestMapping(value = "/registerNewUser", method = RequestMethod.POST, consumes="application/json")
+	public ResponseEntity<?> registerNewUser(
 			@RequestBody UserAccount userAccount,
 			@RequestParam(value = "emailId") String emailId) {
 
-		return bankingService.addNewUser(userAccount, emailId);
+		return bankingService.registerNewUser(userAccount, emailId);
 	}
 	
-	@RequestMapping(value = "/addEmailId", method = RequestMethod.POST, consumes="application/json")
+	@RequestMapping(value = "/addEmailId", method = RequestMethod.POST)
 	public ResponseEntity<?> addEmailId(
-			@RequestParam(value = "ssn") String ssn,
+			@RequestParam(value = "loggedInUserSsn") String loggedInUserSsn,
 			@RequestParam(value = "emailId") String emailId) {
 
-		return bankingService.addEmailId(ssn, emailId);
+		return bankingService.addEmailId(loggedInUserSsn, emailId);
+	}
+	
+	@RequestMapping(value = "/deleteEmailId", method = RequestMethod.DELETE)
+	public ResponseEntity<?> deleteEmailId(
+			@RequestParam(value = "emailId") String emailId) {
+
+		return bankingService.deleteEmailId(emailId);
+	}
+	
+	@RequestMapping(value = "/getUserEmailId", method = RequestMethod.GET)
+	public ResponseEntity<?> getUserEmailId(
+			@RequestParam(value = "loggedInUserSsn") String loggedInUserSsn) {
+
+		return bankingService.getUserEmailId(loggedInUserSsn);
 	}
 	
 	@RequestMapping(value = "/splitAmount", method = RequestMethod.POST)
@@ -104,25 +118,45 @@ public class AccountController {
 	}
 	
 	@RequestMapping(value = "/getUserDetails", method = RequestMethod.GET)
-	public ResponseEntity<?> getUserDetails()
+	public ResponseEntity<?> getUserDetails(@RequestParam(value = "loggedInUserSsn") String loggedInUserSsn)
 			throws Exception {
 
-		return bankingService.getUserDetails();
+		return bankingService.getUserDetails(loggedInUserSsn);
 	}
 	
-/*	@RequestMapping(value = "/addNewUserAccount", method = RequestMethod.POST, consumes="application/json")
-	public ResponseEntity<?> addBankDetails(
-			@RequestBody User userAccount,
-			@RequestParam(value = "email") String email) {
-
-		return new ResponseEntity<>(userAccount,HttpStatus.OK);
-	}*/
-
 	@RequestMapping(value = "/login", method = RequestMethod.GET)
 	public ResponseEntity<?> login(
-			@RequestParam(value = "phoneNumber") String phoneNumber,
+			@RequestParam(value = "ssn") String ssn,
 			@RequestParam(value = "password") String password) throws Exception {
 		
-		return bankingService.login(phoneNumber, password);
+		return bankingService.login(ssn, password);
+	}
+	
+	@RequestMapping(value = "/UpdatePno", method = RequestMethod.PUT)
+	public ResponseEntity<?> UpdatePno(
+			@RequestParam(value = "phoneNo") String phoneNo,
+			@RequestParam(value = "loggedInUserSsn") String loggedInUserSsn) throws Exception {
+
+		return bankingService.updatePno(phoneNo,loggedInUserSsn);
+	}
+
+	@RequestMapping(value = "/addBankDetail", method = RequestMethod.POST)
+	public ResponseEntity<?> addBankDetail(
+			@RequestParam(value = "loggedInUserSsn") String loggedInUserSsn,
+			@RequestParam(value = "bankId") Integer bankId,
+			@RequestParam(value = "bankAccNumber") Long bankAccNumber
+			) {
+
+		return bankingService.addBankDetail(loggedInUserSsn, bankId, bankAccNumber);
+	}
+	
+	@RequestMapping(value = "/deleteBankDetail", method = RequestMethod.DELETE)
+	public ResponseEntity<?> deleteBankDetail(
+			@RequestParam(value = "loggedInUserSsn") String loggedInUserSsn,
+			@RequestParam(value = "bankId") Integer bankId,
+			@RequestParam(value = "bankAccNumber") Long bankAccNumber
+			) {
+
+		return bankingService.deleteBankDetail(loggedInUserSsn, bankId, bankAccNumber);
 	}
 }

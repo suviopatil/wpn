@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.transaction.Transactional;
+import javax.validation.ConstraintViolationException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
@@ -159,7 +160,7 @@ public class BankingService {
 	}
 	
 	@Transactional
-	public ResponseEntity<?> addNewUser(UserAccount userAccount, String emailId) {
+	public ResponseEntity<?> registerNewUser(UserAccount userAccount, String emailId) {
 
 		BankAccount bankAccount = null;
 		if (userAccount.getBankId() != null && userAccount.getAccountNumber() != null) {
@@ -173,7 +174,7 @@ public class BankingService {
 		if (ObjectUtils.isEmpty(userAcc)) {
 			WPNRepo.addNewUser(userAccount.getSsn(), userAccount.getName(), userAccount.getPhoneNo(),
 					userAccount.getAccountBalance(), userAccount.getBankId(), userAccount.getAccountNumber(), "true");
-			addEmailId(emailId, userAccount.getSsn());
+			addEmailId(userAccount.getSsn(), emailId);
 			WPNRepo.addNewUserIdentifier(userAccount.getPhoneNo());
 		}
 		HasAdditional hasAddnl = hasAdditionalRepo.findUserBySsnBidAcct(userAccount.getSsn(), userAccount.getBankId(),
@@ -187,13 +188,24 @@ public class BankingService {
 	}
 
 	@Transactional
-	public ResponseEntity<?> addEmailId(String emailId, String ssn) {
-
-		WPNRepo.addNewUserEmailId(emailId, ssn);
+	public ResponseEntity<?> addEmailId(String loggedInUserSsn, String emailId) {
+		WPNRepo.addNewUserEmailId(emailId, loggedInUserSsn);
 		WPNRepo.addNewUserIdentifier(emailId);
 		return new ResponseEntity<>(response("EmailId added successfully"), HttpStatus.OK);
 	}
-
+	
+	@Transactional
+	public ResponseEntity<?> deleteEmailId(String emailId) {
+		WPNRepo.deleteUserEmailId(emailId);
+		WPNRepo.deleteUserIdentifier(emailId);
+		return new ResponseEntity<>(response("EmailId Deleted successfully"), HttpStatus.OK);
+	}
+	
+	public ResponseEntity<?> getUserEmailId(String loggedInUserSsn) {
+		List<String> emailIdList = emailRepo.findEmailBySsn(loggedInUserSsn);
+		return new ResponseEntity<>(emailIdList, HttpStatus.OK);
+	}
+	
 	@Transactional
 	public ResponseEntity<?> splitAmount(String loggedInUserIdentifier, String amountToSplit, String splitwithIdentifiers) throws ParseException {
 		Integer amountToSplitInt = Integer.parseInt(amountToSplit);
@@ -211,6 +223,19 @@ public class BankingService {
 		return new ResponseEntity<>(response("Split request was sent successfully"), HttpStatus.OK);
 	}
 
+	@Transactional
+	public ResponseEntity<?> updatePno(String phoneNo,String loggedInUserSsn) throws Exception{
+		try {
+			WPNRepo.updatePno(phoneNo,loggedInUserSsn);
+			return new ResponseEntity<>(response("Phone number updated successfully"), HttpStatus.OK);
+		}catch (ConstraintViolationException e) {
+			return new ResponseEntity<>(response("Phone number is not Unique"), HttpStatus.BAD_GATEWAY);
+		}catch (Exception e) {
+			return new ResponseEntity<>(response("Phone number was not updated"), HttpStatus.BAD_GATEWAY);
+		}
+		
+	}
+	
 	private String formattedDateTime(String dateTime) throws ParseException {
 		SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		Date date = inputFormat.parse(dateTime);
@@ -219,13 +244,13 @@ public class BankingService {
 		return formattedDate;
 	}
 
-	public ResponseEntity<?> getUserDetails() {
-		List<UserAccount> userAccount = userAcctRepo.getUserDetails();
+	public ResponseEntity<?> getUserDetails(String loggedInUserSsn) {
+		UserAccount userAccount = userAcctRepo.findUserBySSN(loggedInUserSsn);
 		return new ResponseEntity<>(userAccount, HttpStatus.OK);
 	}
 
-	public ResponseEntity<?> login(String phoneNumber, String password) {
-		UserAccount userAccount = userAcctRepo.findByPhNoAndPwd(phoneNumber, password);
+	public ResponseEntity<?> login(String ssn, String password) {
+		UserAccount userAccount = userAcctRepo.findBySsnAndPwd(ssn, password);
 		if (ObjectUtils.isEmpty(userAccount)) {
 			return new ResponseEntity<>(response("User Not Found"), HttpStatus.NOT_FOUND);
 		}
@@ -242,6 +267,20 @@ public class BankingService {
 			response.add(pendingRequest);
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@Transactional
+	public ResponseEntity<?> addBankDetail(String loggedInUserSsn, Integer bankId, Long bankAccNumber) {
+		WPNRepo.addNewAccount(bankId, bankAccNumber);
+		WPNRepo.hasAdditionalAcc(loggedInUserSsn, bankId, bankAccNumber, "true");
+		return new ResponseEntity<>(response("Successfully Added Bank details"), HttpStatus.OK);
+	}
+	
+	@Transactional
+	public ResponseEntity<?> deleteBankDetail(String loggedInUserSsn, Integer bankId, Long bankAccNumber) {
+		WPNRepo.deleteBankDetails(bankId, bankAccNumber);
+		WPNRepo.deleteAdditionalAccDetails(loggedInUserSsn, bankId, bankAccNumber);
+		return new ResponseEntity<>(response("Successfully Deleted Bank details"), HttpStatus.OK);
 	}
 
 	private String response(String inputResponse) {

@@ -5,6 +5,13 @@ app.controller("homeController", function($scope, $http, $window) {
 	$scope.transactions = [];
 	getRequests();
 	$scope.statement =[];
+	$scope.user = [];
+	$scope.emailIdList = [];
+	$scope.canShowMenu1 = false;
+	$scope.canShowMenu2 = false;
+	$scope.canShowMenu3 = false;
+	getUserDetails();
+	emailIdList();
 	
 	$scope.openCity = function(evt, cityName) {
 		var i, tabcontent, tablinks;
@@ -41,15 +48,11 @@ app.controller("homeController", function($scope, $http, $window) {
 	};
 
 	function _success(res) {
-		var data = res.data;
-		var status = res.status;
-		alert(data.response);
+		alert(res.data.response);
 	}
 
 	function _error(res) {
-		var data = res.data;
-		var status = res.status;
-		alert(data.response);
+		alert(res.data.response);
 	}
 	
 	
@@ -73,15 +76,11 @@ app.controller("homeController", function($scope, $http, $window) {
 	};
 
 	function _success(res) {
-		var data = res.data;
-		var status = res.status;
-		alert(data.response);
+		alert(res.data.response);
 	}
 
 	function _error(res) {
-		var data = res.data;
-		var status = res.status;
-		alert(data.response);
+		alert(res.data.response);
 	}
 	
 	$scope.split = function() {
@@ -103,13 +102,11 @@ app.controller("homeController", function($scope, $http, $window) {
 	};
 
 	function _success(res) {
-		var data = res.data;
-		alert(data.response);
+		alert(res.data.response);
 	}
 
 	function _error(res) {
-		var data = res.data;
-		alert(data.response);
+		alert(res.data.response);
 	}
 	
 	function getRequests() {
@@ -124,7 +121,7 @@ app.controller("homeController", function($scope, $http, $window) {
                 $scope.reqTxns = res.data;
             },
             function(res) { // error
-                console.log("Error: " + res.status + " : " + res.data);
+            	alert(res.data.response);
             }
         );
     }
@@ -143,7 +140,7 @@ app.controller("homeController", function($scope, $http, $window) {
                 $scope.transactions = res.data;
             },
             function(res) { // error
-                console.log("Error: " + res.status + " : " + res.data);
+            	alert(res.data.response);
             }
         );
 	}
@@ -162,7 +159,152 @@ app.controller("homeController", function($scope, $http, $window) {
                 $scope.statement = res.data;
             },
             function(res) { // error
-                console.log("Error: " + res.status + " : " + res.data);
+            	alert(res.data.response);
+            }
+        );
+	}
+	
+	function getUserDetails() {
+		$http({
+            method: 'GET',
+            url: '/wpn/getUserDetails',
+            params : {
+            	"loggedInUserSsn" : "123456789"
+			}
+        }).then(
+            function(res) { // success
+                $scope.user = res.data;
+            },
+            function(res) { // error
+            	alert(res.data.response);
+            }
+        );
+	}
+	
+	function emailIdList() {
+		$http({
+            method: 'GET',
+            url: '/wpn/getUserEmailId',
+            params : {
+            	"loggedInUserSsn" : "123456789"
+			}
+        }).then(
+            function(res) { // success
+                $scope.emailIdList = res.data;
+            },
+            function(res) { // error
+            	alert(res.data.response);
+            }
+        );
+	}
+	
+	$scope.addOrRemovePno = function() {
+		$scope.canShowMenu1 = true;
+		$scope.canShowMenu2 = false;
+		$scope.canShowMenu3 = false;
+	}
+	$scope.addOrRemoveEmail = function() {
+		$scope.canShowMenu2 = true;
+		$scope.canShowMenu1 = false;
+		$scope.canShowMenu3 = false;
+	}
+	$scope.addOrRemoveBankAccount = function() {
+		$scope.canShowMenu3 = true;
+		$scope.canShowMenu1 = false;
+		$scope.canShowMenu2 = false;
+	}
+	
+	$scope.updatePno = function() {
+		$http({
+            method: 'PUT',
+            url: '/wpn/UpdatePno',
+            params : {
+            	"loggedInUserSsn" : "123456789",
+            	"phoneNo" : $scope.phoneNo
+			}
+        }).then(
+            function(res) { // success
+            	alert(res.data.response);
+            },
+            function(res) { // error
+            	alert(res.data.response);
+            }
+        );
+	}
+	
+	$scope.deletePno = function() {
+		alert("PhoneNumber can not be deleted");
+	}
+	
+	$scope.addEmailId = function() {
+		$http({
+            method: 'POST',
+            url: '/wpn/addEmailId',
+            params : {
+            	"loggedInUserSsn" : "123456789",
+            	"emailId" : $scope.emailId
+			}
+        }).then(
+            function(res) { // success
+            	alert(res.data.response);
+            },
+            function(res) { // error
+            	alert(res.data.response);
+            }
+        );
+	}
+	
+	$scope.deleteEmailId = function() {
+		$http({
+            method: 'DELETE',
+            url: '/wpn/deleteEmailId',
+            params : {
+            	"emailId" : $scope.emailId
+			}
+        }).then(
+            function(res) { // success
+            	alert(res.data.response);
+            },
+            function(res) { // error
+            	alert(res.data.response);
+            }
+        );
+	}
+
+	$scope.addBankDetail = function() {
+		$http({
+            method: 'POST',
+            url: '/wpn/addBankDetail',
+            params : {
+            	"loggedInUserSsn" : "123456789",
+            	"bankId" : $scope.bankId,
+            	"bankAccNumber" : $scope.bankAccNumber
+			}
+        }).then(
+            function(res) { // success
+            	alert(res.data.response);
+            },
+            function(res) { // error
+            	alert(res.data.response);
+            }
+        );
+	}
+	
+	$scope.deleteBankDetail = function() {
+		$http({
+            method: 'DELETE',
+            url: '/wpn/deleteBankDetail',
+            params : {
+            	"loggedInUserSsn" : "123456789",
+            	"bankId" : $scope.bankId,
+            	"bankAccNumber" : $scope.bankAccNumber
+			}
+        }).then(
+            function(res) { // success
+            	alert(res.data.response);
+            },
+            function(res) { // error
+            	alert(res.data.response);
             }
         );
 	}

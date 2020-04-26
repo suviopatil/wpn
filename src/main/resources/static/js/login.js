@@ -8,7 +8,10 @@ app.controller("LoginController", function($scope, $http, $window) {
         $http({
         	method : 'GET',
             url : '/wpn/login',
-            params: {"phoneNumber": $scope.phoneNumber, "password": $scope.password},
+            params: {
+            	"ssn": $scope.ssn, 
+            	"password": $scope.password
+            	},
             headers: {
                 'Content-Type': 'application/json'
             }

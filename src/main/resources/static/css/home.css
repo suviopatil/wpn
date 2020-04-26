@@ -7,6 +7,17 @@ body {font-family: Arial;}
   background-color: #f1f1f1;
 }
 
+
+.SendRequestSplit {
+  	background: white;
+	width: 450px;
+	border-radius: 6px;
+	margin: 80 auto 80 auto;
+	padding: 0px 0px 70px 0px;
+	border: #2980b9 4px solid;
+}
+
+
 /* Style the buttons inside the tab */
 .tab button {
   background-color: inherit;
@@ -53,7 +64,7 @@ body {font-family: Arial;}
 	border: #2980b9 4px solid;
 }
 
-.box1 {
+.box2 {
 	background: white;
 	width: 450px;
 	border-radius: 6px;
@@ -61,6 +72,16 @@ body {font-family: Arial;}
 	padding: 0px 0px 70px 0px;
 	border: #2980b9 4px solid;
 }
+
+.box3 {
+	background: white;
+	width: 450px;
+	border-radius: 6px;
+	margin: 0 auto 0 auto;
+	padding: 0px 0px 70px 0px;
+	border: #2980b9 4px solid;
+}
+
 body {
 	font-family: 'Open Sans', sans-serif;
 	background: #3498db;

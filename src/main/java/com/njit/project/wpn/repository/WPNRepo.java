@@ -75,6 +75,14 @@ public class WPNRepo {
 			.executeUpdate();
 	}
 	
+	public void deleteBankDetails(Integer bankId, Long accountNumber) {
+		String query = "DELETE FROM BANKACCOUNT WHERE BANKID=?1 AND ACCOUNTNUMBER=?2";
+		em.createNativeQuery(query)
+			.setParameter(1, bankId)
+			.setParameter(2, accountNumber)
+			.executeUpdate();
+	}
+	
 	public void addNewUser(String ssn, String name, String phoneNo, String balance, Integer bankId,
 		Long accountNumber, String pbaVerified) {
 		String query = "INSERT INTO USERACCOUNT (SSN, NAME, PHONENO, ACCOUNTBALANCE, BANKID, ACCOUNTNUMBER, PBAVERIFIED) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)";
@@ -115,6 +123,15 @@ public class WPNRepo {
 			.setParameter(4, verified)
 			.executeUpdate();
 	}
+	
+	public void deleteAdditionalAccDetails(String ssn, Integer bankId, Long accountNumber) {
+		String query = "DELETE FROM HAS_ADDITIONAL WHERE SSN=?1 AND BANKID=?2 AND ACCOUNTNUMBER=?3";
+		em.createNativeQuery(query)
+			.setParameter(1, ssn)
+			.setParameter(2, bankId)
+			.setParameter(3, accountNumber)
+			.executeUpdate();
+	}
 
 	public void addNewUserEmailId(String emailId, String ssn) {
 		String query = "INSERT INTO EMAIL(EMAILADD, SSN) VALUES(?1, ?2)";
@@ -129,6 +146,28 @@ public class WPNRepo {
 		em.createNativeQuery(query)
 			.setParameter(1, identifier)
 			.setParameter(2, "false")
+			.executeUpdate();
+	}
+	
+	public void updatePno(String phoneNo, String loggedInUserSsn) {
+		String query = "UPDATE USERACCOUNT SET PHONENO = ?1 WHERE SSN = ?2";
+		em.createNativeQuery(query)
+			.setParameter(1, phoneNo)
+			.setParameter(2, loggedInUserSsn)
+			.executeUpdate();
+	}
+	
+	public void deleteUserEmailId(String emailId) {
+		String query = "DELETE FROM EMAIL WHERE EMAILADD = ?1";
+		em.createNativeQuery(query)
+			.setParameter(1, emailId)
+			.executeUpdate();
+	}
+	
+	public void deleteUserIdentifier(String identifier) {
+		String query = "DELETE FROM ELEC_ADDRESS WHERE IDENTIFIER = ?1";
+		em.createNativeQuery(query)
+			.setParameter(1, identifier)
 			.executeUpdate();
 	}
 
