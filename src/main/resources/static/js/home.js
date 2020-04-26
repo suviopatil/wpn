@@ -4,6 +4,7 @@ app.controller("homeController", function($scope, $http, $window) {
 	$scope.reqTxns = [];
 	$scope.transactions = [];
 	getRequests();
+	$scope.statement =[];
 	
 	$scope.openCity = function(evt, cityName) {
 		var i, tabcontent, tablinks;
@@ -83,6 +84,34 @@ app.controller("homeController", function($scope, $http, $window) {
 		alert(data.response);
 	}
 	
+	$scope.split = function() {
+		var method = "";
+		var url = "";
+
+		$http({
+			method : 'POST',
+			url : '/wpn/splitAmount',
+			params : {
+				"loggedInUserIdentifier" : $scope.loggedInUserIdentifier,
+				"amountToSplit" : $scope.amountToSplit,
+				"splitwithIdentifiers" : $scope.splitwithIdentifiers,
+			},
+			headers : {
+				'Content-Type' : 'application/json'
+			}
+		}).then(_success, _error);
+	};
+
+	function _success(res) {
+		var data = res.data;
+		alert(data.response);
+	}
+
+	function _error(res) {
+		var data = res.data;
+		alert(data.response);
+	}
+	
 	function getRequests() {
         $http({
             method: 'GET',
@@ -112,6 +141,25 @@ app.controller("homeController", function($scope, $http, $window) {
         }).then(
             function(res) { // success
                 $scope.transactions = res.data;
+            },
+            function(res) { // error
+                console.log("Error: " + res.status + " : " + res.data);
+            }
+        );
+	}
+	
+	$scope.getStatement = function() {
+		$http({
+            method: 'GET',
+            url: '/wpn/getStatement',
+            params : {
+            	"ssn" : $scope.ssn,
+				"fromDate" : $scope.fromDate,
+				"toDate" : $scope.toDate
+			}
+        }).then(
+            function(res) { // success
+                $scope.statement = res.data;
             },
             function(res) { // error
                 console.log("Error: " + res.status + " : " + res.data);

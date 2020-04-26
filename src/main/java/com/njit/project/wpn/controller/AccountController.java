@@ -1,5 +1,6 @@
 package com.njit.project.wpn.controller;
 
+import java.text.ParseException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,13 +37,13 @@ public class AccountController {
 		return bankingService.addEmailId(ssn, emailId);
 	}
 	
-	@RequestMapping(value = "/splitAmount", method = RequestMethod.POST, consumes="application/json")
+	@RequestMapping(value = "/splitAmount", method = RequestMethod.POST)
 	public ResponseEntity<?> splitAmount(
-			@RequestParam(value = "ssn") String ssn,
+			@RequestParam(value = "loggedInUserIdentifier") String loggedInUserIdentifier,
 			@RequestParam(value = "amountToSplit") String amountToSplit,
-			@RequestBody List<String> identifier) {
+			@RequestParam(value = "splitwithIdentifiers") String splitwithIdentifiers) throws ParseException {
 
-		return bankingService.splitAmount(ssn, amountToSplit, identifier);
+		return bankingService.splitAmount(loggedInUserIdentifier, amountToSplit, splitwithIdentifiers);
 	}
 
 	@RequestMapping(value = "/sendMoney", method = RequestMethod.POST)
@@ -50,7 +51,7 @@ public class AccountController {
 			@RequestParam(value = "senderIdentifier") String senderIdentifier,
 			@RequestParam(value = "receiverIdentifier") String receiverIdentifier,
 			@RequestParam(value = "amountToSend") String amountToSend,
-			@RequestParam(value = "memo", required = false) String memo) {
+			@RequestParam(value = "memo", required = false) String memo) throws ParseException {
 
 		return bankingService.sendMoney(senderIdentifier, receiverIdentifier, amountToSend, memo);
 	}
@@ -60,7 +61,7 @@ public class AccountController {
 			@RequestParam(value = "senderIdentifier") String senderIdentifier,
 			@RequestParam(value = "receiverIdentifier") String receiverIdentifier,
 			@RequestParam(value = "amountToSend") String amountToSend,
-			@RequestParam(value = "rtId") Long rtId) {
+			@RequestParam(value = "rtId") Long rtId) throws ParseException {
 
 		return bankingService.sendRequestedMoney(senderIdentifier, receiverIdentifier, amountToSend, rtId);
 	}
@@ -70,14 +71,14 @@ public class AccountController {
 			@RequestParam(value = "requesteeIdentifier") String requesteeIdentifier,
 			@RequestParam(value = "requestorIdentifier") String requestorIdentifier,
 			@RequestParam(value = "rtMemo", required = false) String rtMemo,
-			@RequestParam(value = "rtAmount") String rtAmount) {
+			@RequestParam(value = "rtAmount") String rtAmount) throws ParseException {
 
 		return bankingService.requestMoney(requesteeIdentifier, requestorIdentifier, rtMemo, rtAmount);
 	}
 
 	@RequestMapping(value = "/searchTransactions", method = RequestMethod.GET)
 	public ResponseEntity<?> getSentTransaction(
-			@RequestParam(value = "txnIdentifier", required = false) String txnIdentifier, 
+			@RequestParam(value = "txnIdentifier", required = false) String txnIdentifier,
 			@RequestParam(value = "fromDate", required = false) String fromDate,
 			@RequestParam(value = "toDate", required = false) String toDate)
 			throws Exception {
@@ -87,11 +88,12 @@ public class AccountController {
 	
 	@RequestMapping(value = "/getStatement", method = RequestMethod.GET)
 	public ResponseEntity<?> getStatement(
+			@RequestParam(value = "ssn", required = false) String ssn,
 			@RequestParam(value = "fromDate") String fromDate,
 			@RequestParam(value = "toDate") String toDate)
 			throws Exception {
 
-		return bankingService.getStatement(fromDate, toDate);
+		return bankingService.getStatement(ssn, fromDate, toDate);
 	}
 	
 	@RequestMapping(value = "/getRequests", method = RequestMethod.GET)

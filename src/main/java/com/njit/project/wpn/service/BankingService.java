@@ -61,21 +61,19 @@ public class BankingService {
 	private FromUserRepo fromUserRepo;
 
 	@Transactional
-	public ResponseEntity<?> sendMoney(String senderIdentifier, String receiverIdentifier, String amountToSend,
-			String memo) {
+	public ResponseEntity<?> sendMoney(String senderIdentifier, String receiverIdentifier, String amountToSend, String memo) throws ParseException {
 
 		String currentUserBalance = null;
-
 		UserAccount reciepentUsers = getUserByIdentifier(receiverIdentifier);
+
 		if (!ObjectUtils.isEmpty(reciepentUsers)) {
 			UserAccount senderUser = getUserByIdentifier(senderIdentifier);
 			currentUserBalance = senderUser.getAccountBalance();
 			Double senderUpdatedBalance = Double.valueOf(currentUserBalance) - Double.valueOf(amountToSend);
 			WPNRepo.updateAccountBalance(senderUpdatedBalance.toString(), senderUser.getSsn());
-			Double receiverUpdatedBalance = Double.valueOf(reciepentUsers.getAccountBalance())
-					+ Double.valueOf(amountToSend);
+			Double receiverUpdatedBalance = Double.valueOf(reciepentUsers.getAccountBalance()) + Double.valueOf(amountToSend);
 			WPNRepo.updateAccountBalance(receiverUpdatedBalance.toString(), reciepentUsers.getSsn());
-			WPNRepo.saveSentTransaction(senderUser.getSsn(), amountToSend, memo);
+			WPNRepo.saveSentTransaction(senderUser.getSsn(), receiverIdentifier, amountToSend, memo);
 			return new ResponseEntity<>(response("Amount Successfully sent"), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(response("Couldn't send amount"), HttpStatus.NOT_FOUND);
@@ -85,7 +83,7 @@ public class BankingService {
 
 	@Transactional
 	public ResponseEntity<?> sendRequestedMoney(String senderIdentifier, String receiverIdentifier, String amountToSend,
-			Long rtId) {
+			Long rtId) throws ParseException {
 		sendMoney(senderIdentifier, receiverIdentifier, amountToSend, "Welcome");
 		WPNRepo.updateReqTrnxStatus("Confirmed", rtId);
 
@@ -94,7 +92,7 @@ public class BankingService {
 
 	@Transactional
 	public ResponseEntity<?> requestMoney(String requesteeIdentifier, String requestorIdentifier, String memo,
-			String reqAmount) {
+			String reqAmount) throws ParseException {
 		LocalTime time = LocalTime.now();
 		Long rtId = (long) time.getNano();
 		UserAccount requestor = getUserByIdentifier(requestorIdentifier);
@@ -104,30 +102,62 @@ public class BankingService {
 	}
 
 	public ResponseEntity<?> findTransactions(String txnIdentifier, String fromDate, String toDate) throws Exception {
-		String ssn = null;
-		List<TransactionResult> response = new ArrayList<>();
+		String loggedInUserSsn = null;
+		List<String> loggedInUserIdentifier = new ArrayList<>();
+		List<SendTransaction> sentTransaction = new ArrayList<>();
+		List<SendTransaction> receivedTransaction = new ArrayList<>();
+		String formattedFromDate = formattedDateTime(fromDate);
+		String formattedtoDate = formattedDateTime(toDate);
 		if (StringUtils.isNotBlank(txnIdentifier)) {
 			if ((txnIdentifier.length() == 9 || txnIdentifier.length() == 11) && !txnIdentifier.contains("@")) {
-				ssn = txnIdentifier;
+				loggedInUserSsn = txnIdentifier;
+				loggedInUserIdentifier = getAllIdentifiers(loggedInUserSsn);
 			} else {
 				UserAccount user = getUserByIdentifier(txnIdentifier);
-				ssn = user.getSsn();
+				loggedInUserSsn = user.getSsn();
+				loggedInUserIdentifier = getAllIdentifiers(loggedInUserSsn);
 			}
-			List<SendTransaction> sendTransaction = transactionRepo.findSentTransactions(ssn);
-			List<RequestTransaction> requestTransaction = reqTranxRepo.findReqTransactionsBySsn(ssn);
-			response = txnResCommonMethod(sendTransaction, requestTransaction);
+			sentTransaction = transactionRepo.findSentTransactions(loggedInUserSsn, formattedFromDate, formattedtoDate);
+			receivedTransaction = transactionRepo.findReceivedTransactions(loggedInUserIdentifier, formattedFromDate, formattedtoDate);
+			sentTransaction.addAll(receivedTransaction);
 		}
-		else if(StringUtils.isNotBlank(fromDate) && StringUtils.isNotBlank(toDate)) {
-			String formattedFromDate = formattedDateTime(fromDate);
-			String formattedtoDate = formattedDateTime(toDate);
-			List<SendTransaction> sendTxn = transactionRepo.findSentTransactions(formattedFromDate, formattedtoDate);
-			List<RequestTransaction> reqTxn = reqTranxRepo.findReqTransactions(formattedFromDate, formattedtoDate);
-			response = txnResCommonMethod(sendTxn, reqTxn);
-		}
-
-		return new ResponseEntity<>(response, HttpStatus.OK);
+		return new ResponseEntity<>(sentTransaction, HttpStatus.OK);
+	}
+	
+	private List<String> getAllIdentifiers(String loggedInUserSsn){
+		List<String> loggedInUserIdentifier = new ArrayList<>();
+		UserAccount user = userAcctRepo.findUserBySSN(loggedInUserSsn);
+		List<String> emialIds = emailRepo.findEmailBySsn(loggedInUserSsn);
+		loggedInUserIdentifier.add(user.getPhoneNo());
+		loggedInUserIdentifier.addAll(emialIds);
+		return loggedInUserIdentifier;
+	}
+	
+	public ResponseEntity<?> getStatement(String loggedInUserSsn, String fromDate, String toDate) throws ParseException {
+		String formattedFromDate = formattedDateTime(fromDate);
+		String formattedtoDate = formattedDateTime(toDate);
+		List<String> loggedInUserIdentifier = getAllIdentifiers(loggedInUserSsn);
+		List<String> SumAvgMax_Sent = transactionRepo.getSumAvgMaxSentAmount(loggedInUserSsn, formattedFromDate, formattedtoDate);
+		List<String> bestSentUser = transactionRepo.getBestSentUser(loggedInUserIdentifier, formattedFromDate, formattedtoDate);
+		List<String> SumAvgMax_Received = transactionRepo.getSumAvgMaxReceivedAmount(loggedInUserIdentifier, formattedFromDate, formattedtoDate);
+		List<String> bestReceivedUser = transactionRepo.getBestReceivedUser(loggedInUserSsn, formattedFromDate, formattedtoDate);
+		JSONObject response = formJsonResponseObject(SumAvgMax_Sent, bestSentUser, SumAvgMax_Received, bestReceivedUser);
+		return new ResponseEntity<>(response.toString(), HttpStatus.OK);
 	}
 
+	private JSONObject formJsonResponseObject(List<String> SumAvgMax_Sent, List<String> bestSentUser, List<String> SumAvgMax_Received, List<String> bestReceivedUser) {
+		JSONObject response = new JSONObject();
+		response.put("sentSum", SumAvgMax_Sent.get(0).split(",",0)[0]);
+		response.put("sentAvg", SumAvgMax_Sent.get(0).split(",",0)[1]);
+		response.put("sentMax", SumAvgMax_Sent.get(0).split(",",0)[2]);
+		response.put("bestSentUser", userAcctRepo.findUserBySSN(bestSentUser.get(0).split(",",0)[0]).getName());
+		response.put("receivedSum", SumAvgMax_Received.get(0).split(",",0)[0]);
+		response.put("receivedAvg", SumAvgMax_Received.get(0).split(",",0)[1]);
+		response.put("receivedMax", SumAvgMax_Received.get(0).split(",",0)[2]);
+		response.put("bestreceivedUser", getUserByIdentifier(bestReceivedUser.get(0).split(",",0)[0]).getName());
+		return response;
+	}
+	
 	@Transactional
 	public ResponseEntity<?> addNewUser(UserAccount userAccount, String emailId) {
 
@@ -164,29 +194,21 @@ public class BankingService {
 		return new ResponseEntity<>(response("EmailId added successfully"), HttpStatus.OK);
 	}
 
-	public ResponseEntity<?> splitAmount(String ssn, String amountToSplit, List<String> identifier) {
+	@Transactional
+	public ResponseEntity<?> splitAmount(String loggedInUserIdentifier, String amountToSplit, String splitwithIdentifiers) throws ParseException {
 		Integer amountToSplitInt = Integer.parseInt(amountToSplit);
-		Integer individualSplitAmount = amountToSplitInt / (1 + identifier.size());
+		String loggedInUserSsn = getUserByIdentifier(loggedInUserIdentifier).getSsn();
+		String[] arrOfStr = splitwithIdentifiers.split(",",0);
+		Integer individualSplitAmount = amountToSplitInt / (1 + arrOfStr.length);
 		Integer percentage = (individualSplitAmount * 100) / amountToSplitInt;
-		String percentageString = percentage.toString();
 		String individualSplitAmountString = individualSplitAmount.toString();
-		for (int i = 0; i < identifier.size(); i++) {
+		for (int i = 0; i < arrOfStr.length; i++) {
 			LocalTime time = LocalTime.now();
 			Long rtId = (long) time.getNano();
-			WPNRepo.saveRequestTransaction(rtId, individualSplitAmountString, "SplittingAmount", ssn, "Pending");
-			WPNRepo.saveFromTransaction(rtId, identifier.get(i), percentageString);
+			WPNRepo.saveRequestTransaction(rtId, individualSplitAmountString, "SplittingAmount", loggedInUserSsn, "Pending");
+			WPNRepo.saveFromTransaction(rtId, arrOfStr[i], percentage.toString());
 		}
 		return new ResponseEntity<>(response("Split request was sent successfully"), HttpStatus.OK);
-	}
-
-	public ResponseEntity<?> getStatement(String fromDate, String toDate) throws ParseException {
-
-		String formattedFromDate = formattedDateTime(fromDate);
-		String formattedtoDate = formattedDateTime(toDate);
-		List<SendTransaction> sendTxn = transactionRepo.findSentTransactions(formattedFromDate, formattedtoDate);
-		List<RequestTransaction> reqTxn = reqTranxRepo.findReqTransactions(formattedFromDate, formattedtoDate);
-		List<TransactionResult> res = txnResCommonMethod(sendTxn, reqTxn);
-		return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 
 	private String formattedDateTime(String dateTime) throws ParseException {
@@ -220,25 +242,6 @@ public class BankingService {
 			response.add(pendingRequest);
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
-	}
-
-	private List<TransactionResult> txnResCommonMethod(List<SendTransaction> sendTxn, List<RequestTransaction> reqTxn) {
-		List<TransactionResult> txnResList = new ArrayList<>();
-		for (int i = 0; i < sendTxn.size(); i++) {
-			TransactionResult txn = new TransactionResult();
-			txn.setId(sendTxn.get(i).getStId());
-			txn.setAmount(sendTxn.get(i).getStAmount());
-			txn.setDateTime(sendTxn.get(i).getStDateTime());
-			txnResList.add(txn);
-		}
-		for (int i = 0; i < reqTxn.size(); i++) {
-			TransactionResult txn = new TransactionResult();
-			txn.setId(reqTxn.get(i).getRtId());
-			txn.setAmount(reqTxn.get(i).getRtAmount());
-			txn.setDateTime(reqTxn.get(i).getRtDateTime());
-			txnResList.add(txn);
-		}
-		return txnResList;
 	}
 
 	private String response(String inputResponse) {

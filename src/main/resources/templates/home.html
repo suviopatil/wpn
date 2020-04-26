@@ -48,13 +48,10 @@
 			</div>
 
 			<div id="Split" class="tabcontent">
-				<input type="text" id="phoneNumber" class="form-control"
-					placeholder="Enter comma seperated phone number or email"
-					ng-model="phoneNumber"><br> <input type="text"
-					id="amount" class="form-control"
-					placeholder="Enter amount to split" ng-model="amount"><br>
-				<input type="button" class="btn btn-primary" ng-click="split()"
-					value="Split"></a>
+				<input type="text" id="userIdentifier" class="form-control" placeholder="Enter a Phone number or emailId to receive money" ng-model="loggedInUserIdentifier"><br> 
+				<input type="text" id="splitwith" class="form-control" placeholder="Enter comma seperated phone number or email" ng-model="splitwithIdentifiers"><br> 
+				<input type="text" id="splitAmount" class="form-control" placeholder="Enter amount to split" ng-model="amountToSplit"><br>
+				<input type="button" class="btn btn-primary" ng-click="split()" value="Split"></a>
 			</div>
 		</div>
 	</form>
@@ -79,17 +76,32 @@
 					<th>Transaction Id</th>
 					<th>Transaction Amount</th>
 					<th>Transaction Date</th>
+					<th>SentTo/ReceivedFrom</th>
 				</tr>
 				<tr ng-repeat="transaction in transactions">
-					<td>{{transaction.id}}</td>
-					<td>{{transaction.amount}}</td>
-					<td>{{transaction.dateTime}}</td>
+					<td>{{transaction.stId}}</td>
+					<td>{{transaction.stAmount}}</td>
+					<td>{{transaction.stDateTime}}</td>
+					<td>{{transaction.identifier}}</td>
 				</tr>
 			</table>
 		</div>
 
 		<div id="Statement" class="tabcontent">
-			<h1>Statement</h1>
+			<input type="date" ng-model="fromDate" />
+			<input type="date" ng-model="toDate" /><br>
+			<input type="text" ng-model="ssn" /><br>
+			<input type="button" class="btn btn-primary" ng-click="getStatement()" value="GetStatement"></a><br><br><br><br>
+			<div>
+				<p>Total money sent = <span style= "font-weight:bold">{{statement.sentSum}}</span><br>
+				<p>Total money received  = <span style= "font-weight:bold">{{statement.receivedSum}}</span><br>
+				<p>Average money sent = <span style= "font-weight:bold">{{statement.sentAvg}}</span><br>
+				<p>Average money received = <span style= "font-weight:bold">{{statement.receivedAvg}}</span><br>
+				<p>Maximum money sent = <span style= "font-weight:bold">{{statement.sentMax}}</span><br>
+				<p>Maximum money received = <span style= "font-weight:bold">{{statement.receivedMax}}</span><br>
+				<p>Best User who sent maximum total amount = <span style= "font-weight:bold">{{statement.bestSentUser}}</span><br>
+				<p>Best User who received maximum total amount = <span style= "font-weight:bold">{{statement.bestreceivedUser}}</span><br>
+			</div>
 		</div>
 
 		<div id="Activities" class="tabcontent">

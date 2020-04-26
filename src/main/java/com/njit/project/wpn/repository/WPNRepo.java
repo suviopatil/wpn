@@ -1,6 +1,8 @@
 package com.njit.project.wpn.repository;
 
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.util.Calendar;
 import java.util.Date;
@@ -24,36 +26,47 @@ public class WPNRepo {
 			.executeUpdate();
 	}
 	
-	public void saveSentTransaction(String ssn, String amountToSend, String memo) {
+	public void saveSentTransaction(String ssn, String identifier, String amountToSend, String memo) throws ParseException {
 		Calendar calendar = Calendar.getInstance();
 		Date now = calendar.getTime();
 		Timestamp currentTimestamp = new java.sql.Timestamp(now.getTime());
+		String currentTimestampSql = formattedDateTime(currentTimestamp.toString());
 		LocalTime time = LocalTime.now();
-		String query = "INSERT INTO SEND_TRANSACTION(SSN, AMOUNT, DATETIME,TX_ID, MEMO) VALUES(?1,?2,?3,?4,?5)";
+		String query = "INSERT INTO SEND_TRANSACTION(SSN, AMOUNT, DATETIME,ST_ID, MEMO, IDENTIFIER) VALUES(?1,?2,?3,?4,?5,?6)";
 		em.createNativeQuery(query)
 			.setParameter(1, ssn)
 			.setParameter(2, amountToSend)
-			.setParameter(3, currentTimestamp)
+			.setParameter(3, currentTimestampSql)
 			.setParameter(4, time.getNano())
 			.setParameter(5, memo)
+			.setParameter(6, identifier)
 			.executeUpdate();
 	}
 	
-	public void saveRequestTransaction(Long rtId, String requestedAmount, String memo, String ssn, String status) {
+	public void saveRequestTransaction(Long rtId, String requestedAmount, String memo, String ssn, String status) throws ParseException {
 		Calendar calendar = Calendar.getInstance();
 		Date now = calendar.getTime();
 		Timestamp currentTimestamp = new java.sql.Timestamp(now.getTime());
+		String currentTimestampSql = formattedDateTime(currentTimestamp.toString());
+
 		String query = "INSERT INTO REQUEST_TRANSACTION(SSN, RTAMOUNT, RTDATETIME, RT_ID, RTMEMO, STATUS) VALUES(?1,?2,?3,?4,?5,?6)";
 		em.createNativeQuery(query)
 			.setParameter(1, ssn)
 			.setParameter(2, requestedAmount)
-			.setParameter(3, currentTimestamp)
+			.setParameter(3, currentTimestampSql)
 			.setParameter(4, rtId)
 			.setParameter(5, memo)
 			.setParameter(6, status)
 			.executeUpdate();
 	}
 	
+	private String formattedDateTime(String dateTime) throws ParseException {
+		SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:sss");
+		Date date = inputFormat.parse(dateTime);
+		SimpleDateFormat outputFormat = new SimpleDateFormat("dd-MMM-yy hh.mm.ss.SSSSSSSSS a");
+		String formattedDate = outputFormat.format(date).toUpperCase();
+		return formattedDate;
+	}
 	public void addNewAccount(Integer bankId, Long accountNumber) {
 		String query = "INSERT INTO BANKACCOUNT(BANKID, ACCOUNTNUMBER) VALUES(?1, ?2)";
 		em.createNativeQuery(query)

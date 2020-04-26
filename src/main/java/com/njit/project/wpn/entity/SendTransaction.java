@@ -29,7 +29,7 @@ public class SendTransaction implements Serializable{
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@Column(name="TX_ID")
+	@Column(name="ST_ID")
 	private long stId;
 	
 	@Column(name="AMOUNT")
