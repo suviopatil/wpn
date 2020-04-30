@@ -170,5 +170,13 @@ public class WPNRepo {
 			.setParameter(1, identifier)
 			.executeUpdate();
 	}
+	
+	public void updateStatusToDecline(String status,Long rtId) {
+		String query = "UPDATE REQUEST_TRANSACTION SET STATUS = ?1 WHERE RT_ID = ?2";
+		em.createNativeQuery(query)
+			.setParameter(1, status)
+			.setParameter(2, rtId)
+			.executeUpdate();
+	}
 
 }

@@ -65,29 +65,36 @@ public class AccountController {
 			@RequestParam(value = "senderIdentifier") String senderIdentifier,
 			@RequestParam(value = "receiverIdentifier") String receiverIdentifier,
 			@RequestParam(value = "amountToSend") String amountToSend,
-			@RequestParam(value = "memo", required = false) String memo) throws ParseException {
+			@RequestParam(value = "memo", required = false) String memo) throws Exception {
 
 		return bankingService.sendMoney(senderIdentifier, receiverIdentifier, amountToSend, memo);
 	}
 	
 	@RequestMapping(value = "/sendRequestedMoney", method = RequestMethod.POST)
 	public ResponseEntity<?> sendRequestedMoney(
-			@RequestParam(value = "senderIdentifier") String senderIdentifier,
-			@RequestParam(value = "receiverIdentifier") String receiverIdentifier,
+			@RequestParam(value = "loggenInUserSsn") String loggenInUserSsn,
+			@RequestParam(value = "requesterSsn") String requesterSsn,
 			@RequestParam(value = "amountToSend") String amountToSend,
-			@RequestParam(value = "rtId") Long rtId) throws ParseException {
+			@RequestParam(value = "rtId") Long rtId) throws Exception {
 
-		return bankingService.sendRequestedMoney(senderIdentifier, receiverIdentifier, amountToSend, rtId);
+		return bankingService.sendRequestedMoney(loggenInUserSsn, requesterSsn, amountToSend, rtId);
+	}
+	
+	@RequestMapping(value = "/declineRequestedMoney", method = RequestMethod.POST)
+	public ResponseEntity<?> declineRequestedMoney(
+			@RequestParam(value = "rtId") Long rtId) throws Exception {
+
+		return bankingService.declineRequestedMoney(rtId);
 	}
 	
 	@RequestMapping(value = "/requestMoney", method = RequestMethod.POST)
 	public ResponseEntity<?> requestMoney(
-			@RequestParam(value = "requesteeIdentifier") String requesteeIdentifier,
 			@RequestParam(value = "requestorIdentifier") String requestorIdentifier,
+			@RequestParam(value = "requesteeIdentifier") String requesteeIdentifier,
 			@RequestParam(value = "rtMemo", required = false) String rtMemo,
 			@RequestParam(value = "rtAmount") String rtAmount) throws ParseException {
 
-		return bankingService.requestMoney(requesteeIdentifier, requestorIdentifier, rtMemo, rtAmount);
+		return bankingService.requestMoney(requestorIdentifier, requesteeIdentifier, rtMemo, rtAmount);
 	}
 
 	@RequestMapping(value = "/searchTransactions", method = RequestMethod.GET)
@@ -110,11 +117,11 @@ public class AccountController {
 		return bankingService.getStatement(ssn, fromDate, toDate);
 	}
 	
-	@RequestMapping(value = "/getRequests", method = RequestMethod.GET)
-	public ResponseEntity<?> getRequests(
-			@RequestParam(value = "identifier") String identifier){
+	@RequestMapping(value = "/getPendingReq", method = RequestMethod.GET)
+	public ResponseEntity<?> getPendingReq(
+			@RequestParam(value = "loggedInUserSsn") String loggedInUserSsn){
 
-		return bankingService.getRequests(identifier);
+		return bankingService.getPendingReq(loggedInUserSsn);
 	}
 	
 	@RequestMapping(value = "/getUserDetails", method = RequestMethod.GET)

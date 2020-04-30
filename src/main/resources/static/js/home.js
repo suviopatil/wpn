@@ -3,14 +3,23 @@ app.controller("homeController", function($scope, $http, $window) {
 
 	$scope.reqTxns = [];
 	$scope.transactions = [];
-	getRequests();
 	$scope.statement =[];
 	$scope.user = [];
 	$scope.emailIdList = [];
+	
 	$scope.canShowMenu1 = false;
 	$scope.canShowMenu2 = false;
 	$scope.canShowMenu3 = false;
-	getUserDetails();
+	$scope.showStmtDetails = false;
+	$scope.showTxnHistory = false;
+	$scope.showPendingReqTxns = false;
+	$scope.showPendingReqInput = true;
+	$scope.inputUserDetails = true;
+	$scope.showUserDetails = false;
+	
+	
+	//getRequests();
+	//getUserDetails();
 	emailIdList();
 	
 	$scope.openCity = function(evt, cityName) {
@@ -93,7 +102,7 @@ app.controller("homeController", function($scope, $http, $window) {
 			params : {
 				"loggedInUserIdentifier" : $scope.loggedInUserIdentifier,
 				"amountToSplit" : $scope.amountToSplit,
-				"splitwithIdentifiers" : $scope.splitwithIdentifiers,
+				"splitwithIdentifiers" : $scope.splitwithIdentifiers
 			},
 			headers : {
 				'Content-Type' : 'application/json'
@@ -109,13 +118,15 @@ app.controller("homeController", function($scope, $http, $window) {
 		alert(res.data.response);
 	}
 	
-	function getRequests() {
+	$scope.getPendingReq = function(){
+		$scope.showPendingReqTxns = true;
+		$scope.showPendingReqInput = false;
         $http({
             method: 'GET',
+            url: '/wpn/getPendingReq',
             params : {
-				"identifier" : "8457509233"
-			},
-            url: '/wpn/getRequests'
+				"loggedInUserSsn" : $scope.signInUserSSN
+			}
         }).then(
             function(res) { // success
                 $scope.reqTxns = res.data;
@@ -127,6 +138,7 @@ app.controller("homeController", function($scope, $http, $window) {
     }
 	
 	$scope.getTransactions = function() {
+		$scope.showTxnHistory = true;
 		$http({
             method: 'GET',
             url: '/wpn/searchTransactions',
@@ -146,6 +158,7 @@ app.controller("homeController", function($scope, $http, $window) {
 	}
 	
 	$scope.getStatement = function() {
+		$scope.showStmtDetails = true;
 		$http({
             method: 'GET',
             url: '/wpn/getStatement',
@@ -164,12 +177,14 @@ app.controller("homeController", function($scope, $http, $window) {
         );
 	}
 	
-	function getUserDetails() {
+		$scope.getUserDetails = function() {
+			$scope.inputUserDetails = false;
+			$scope.showUserDetails = true;
 		$http({
             method: 'GET',
             url: '/wpn/getUserDetails',
             params : {
-            	"loggedInUserSsn" : "123456789"
+            	"loggedInUserSsn" : $scope.currentLoggedInUserSsn
 			}
         }).then(
             function(res) { // success
@@ -308,4 +323,44 @@ app.controller("homeController", function($scope, $http, $window) {
             }
         );
 	}
+	
+	$scope.sendRequestedMoney = function(ssn, rtId, amount) {
+		$http({
+			/*$scope.reqTxns*/
+	            method: 'POST',
+	            url: '/wpn/sendRequestedMoney',
+	            params : {
+	            	"loggenInUserSsn" : $scope.signInUserSSN,
+	            	"requesterSsn" : ssn,
+	            	"rtId" : rtId,
+	            	"amountToSend" : amount
+				}
+        }).then(
+            function(res) { // success
+            	alert(res.data.response);
+            },
+            function(res) { // error
+            	alert(res.data.response);
+            }
+        );
+	}
+	
+	$scope.declineRequestedMoney = function(rtId) {
+		$http({
+			/*$scope.reqTxns*/
+	            method: 'POST',
+	            url: '/wpn/declineRequestedMoney',
+	            params : {
+	            	"rtId" : rtId
+				}
+        }).then(
+            function(res) { // success
+            	alert(res.data.response);
+            },
+            function(res) { // error
+            	alert(res.data.response);
+            }
+        );
+	}
+	
 });

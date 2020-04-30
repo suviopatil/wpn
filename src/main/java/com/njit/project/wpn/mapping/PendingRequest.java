@@ -8,4 +8,7 @@ import lombok.Setter;
 public class PendingRequest {
 	private String name;
 	private String amount;
+	private String ssn;
+	private String rtId;
+	
 }

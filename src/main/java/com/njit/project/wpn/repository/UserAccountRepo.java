@@ -1,5 +1,7 @@
 package com.njit.project.wpn.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -21,6 +23,9 @@ public interface UserAccountRepo extends JpaRepository<UserAccount, Long>{
 	@Query(value="SELECT * FROM USERACCOUNT WHERE SSN = ?1 OR PHONENO = ?2 OR EMAIL = ?3 ", nativeQuery = true)
 	UserAccount findByPhNoOrEmailorSsn(String ssn, String phoneNo, String emailId);
 
-	@Query(value="SELECT * FROM USERACCOUNT WHERE SSN = ?1 OR PASSWORD = ?2 ", nativeQuery = true)
+	@Query(value="SELECT * FROM USERACCOUNT WHERE SSN = ?1 AND PASSWORD = ?2 ", nativeQuery = true)
 	UserAccount findBySsnAndPwd(String ssn, String password);
+
+	@Query(value="SELECT U.PHONENO, E.EMAILADD FROM USERACCOUNT U,EMAIL E WHERE U.SSN=E.SSN AND U.SSN = ?1", nativeQuery = true)
+	List<String> findPnoEmailBySsn(String ssn);
 }

@@ -9,6 +9,9 @@
 <script
 	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.js"></script>
 
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
 <script src="js/home.js"></script>
 </head>
 <body ng-app="home" ng-controller="homeController">
@@ -18,207 +21,236 @@
 				<button class="tablinks" ng-click="openCity(event, 'Send')">Send</button>
 				<button class="tablinks" ng-click="openCity(event, 'Request')">Request</button>
 				<button class="tablinks" ng-click="openCity(event, 'Split')">Split</button>
+				<button class="tablinks" ng-click="openCity(event, 'Statement')">Statement</button>
+				<button class="tablinks"
+					ng-click="openCity(event, 'TransationHistory')">TransationHistory</button>
+				<button class="tablinks" ng-click="openCity(event, 'Activities')">Activities</button>
+				<button class="tablinks" ng-click="openCity(event, 'AccountInfo')">
+					<i class="fa fa-home"></i> Account Info
+				</button>
 			</div>
 			<div id="Send" class="tabcontent">
 				<input type="text" id="fromUser" class="form-control"
+					style="width: 400px; height: 30px"
 					placeholder="Enter phoneNum, email from user" ng-model="fromUser"><br>
 				<input type="text" id="toUser" class="form-control"
+					style="width: 400px; height: 30px"
 					placeholder="Enter phoneNum, email to user" ng-model="toUser"><br>
 				<input type="text" id="amount" class="form-control"
+					style="width: 400px; height: 30px"
 					placeholder="Enter amount to send" ng-model="amount"><br>
 				<input type="text" id="memo" class="form-control"
-					placeholder="Enter memo" ng-model="memo"><br> <input
-					type="button" class="btn btn-primary" ng-click="sendMoney()"
-					value="Send"></a>
+					style="width: 400px; height: 30px" placeholder="Enter memo"
+					ng-model="memo"><br> <input type="button"
+					class="btn btn-primary" ng-click="sendMoney()"
+					style="width: 200px; height: 30px" value="Send"></a>
 			</div>
 
 			<div id="Request" class="tabcontent">
 				<input type="text" id="requestorIdentifierr" class="form-control"
-					placeholder="Enter phoneNum, email from user"
-					ng-model="requestorIdentifier"><br> <input type="text"
-					id="requesteeIdentifier" class="form-control"
-					placeholder="Enter phoneNum, email to user"
-					ng-model="requesteeIdentifier"><br> <input type="text"
-					id="rtAmount" class="form-control"
-					placeholder="Enter amount to request" ng-model="rtAmount"><br>
-				<input type="text" id="rtMemo" class="form-control"
-					placeholder="Enter memo" ng-model="rtMemo"><br> <input
+					placeholder="Enter phoneNum, email of requester"
+					ng-model="requestorIdentifier" style="width: 400px; height: 30px"><br>
+				<input type="text" id="requesteeIdentifier" class="form-control"
+					placeholder="Enter phoneNum, email of requestee"
+					ng-model="requesteeIdentifier" style="width: 400px; height: 30px"><br>
+				<input type="text" id="rtAmount" class="form-control"
+					placeholder="Enter amount to request" ng-model="rtAmount"
+					style="width: 400px; height: 30px"><br> <input
+					type="text" id="rtMemo" class="form-control"
+					placeholder="Enter memo" ng-model="rtMemo"
+					style="width: 400px; height: 30px"><br> <input
 					type="button" class="btn btn-primary" ng-click="requestMoney()"
-					value="Request"></a>
+					value="Request" style="width: 200px; height: 30px"></a>
 			</div>
 
 			<div id="Split" class="tabcontent">
 				<input type="text" id="userIdentifier" class="form-control"
 					placeholder="Enter a Phone number or emailId to receive money"
-					ng-model="loggedInUserIdentifier"><br> <input
+					ng-model="loggedInUserIdentifier"
+					style="width: 400px; height: 30px"><br> <input
 					type="text" id="splitwith" class="form-control"
 					placeholder="Enter comma seperated phone number or email"
-					ng-model="splitwithIdentifiers"><br> <input
-					type="text" id="splitAmount" class="form-control"
-					placeholder="Enter amount to split" ng-model="amountToSplit"><br>
-				<input type="button" class="btn btn-primary" ng-click="split()"
-					value="Split"></a>
+					ng-model="splitwithIdentifiers" style="width: 400px; height: 30px"><br>
+				<input type="text" id="splitAmount" class="form-control"
+					placeholder="Enter amount to split" ng-model="amountToSplit"
+					style="width: 400px; height: 30px"><br> <input
+					type="button" class="btn btn-primary" ng-click="split()"
+					value="Split" style="width: 200px; height: 30px"></a>
 			</div>
-		</div>
-	</form>
-	<br />
-	<form>
-		<div class="box2">
-			<div class="tab">
-				<button class="tablinks" ng-click="openCity(event, 'Statement')">Statement</button>
-				<button class="tablinks"
-					ng-click="openCity(event, 'TransationHistory')">Transation
-					History</button>
-				<button class="tablinks" ng-click="openCity(event, 'Activities')">Activities</button>
-			</div>
-
 			<div id="TransationHistory" class="tabcontent">
-				<input type="date" ng-model="fromDate" /> <input type="date"
-					ng-model="toDate" /><br> <input type="text"
-					ng-model="txnIdentifier" /><br> <input type="button"
-					class="btn btn-primary" ng-click="getTransactions()"
-					value="SearchTransaction"></a>
-
-				<table border="1">
-					<tr>
-						<th>Transaction Id</th>
-						<th>Transaction Amount</th>
-						<th>Transaction Date</th>
-						<th>SentTo/ReceivedFrom</th>
-					</tr>
-					<tr ng-repeat="transaction in transactions">
-						<td>{{transaction.stId}}</td>
-						<td>{{transaction.stAmount}}</td>
-						<td>{{transaction.stDateTime}}</td>
-						<td>{{transaction.identifier}}</td>
-					</tr>
-				</table>
+				<lable> <span style="font-weight: bold">From Date: </span></lable>
+				<input type="date" ng-model="fromDate" /> <br> <br>
+				<lable> <span style="font-weight: bold">To Date:
+					&nbsp&nbsp&nbsp&nbsp</span></lable>
+				<input type="date" ng-model="toDate" /><br> <br>
+				<lable> <span style="font-weight: bold">SSN:
+					&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</span></lable>
+				<input type="text" ng-model="txnIdentifier" /><br> <input
+					type="button" class="btn btn-primary" ng-click="getTransactions()"
+					value="SearchTransaction"></a><br> <br> <br> <br>
+				<br> <span ng-show="showTxnHistory">
+					<table border="1">
+						<tr>
+							<th>Transaction Id</th>
+							<th>Transaction Amount</th>
+							<th>Transaction Date</th>
+							<th>SentTo/ReceivedFrom</th>
+						</tr>
+						<tr ng-repeat="transaction in transactions">
+							<td>{{transaction.stId}}</td>
+							<td>{{transaction.stAmount}}</td>
+							<td>{{transaction.stDateTime}}</td>
+							<td>{{transaction.identifier}}</td>
+						</tr>
+					</table>
+				</span>
 			</div>
 
 			<div id="Statement" class="tabcontent">
-				<input type="date" ng-model="fromDate" /> <input type="date"
-					ng-model="toDate" /><br> <input type="text" ng-model="ssn" /><br>
-				<input type="button" class="btn btn-primary"
-					ng-click="getStatement()" value="GetStatement"></a><br> <br>
-				<br> <br>
 				<div>
-					<p>
-						Total money sent = <span style="font-weight: bold">{{statement.sentSum}}</span><br>
-					<p>
-						Total money received = <span style="font-weight: bold">{{statement.receivedSum}}</span><br>
-					<p>
-						Average money sent = <span style="font-weight: bold">{{statement.sentAvg}}</span><br>
-					<p>
-						Average money received = <span style="font-weight: bold">{{statement.receivedAvg}}</span><br>
-					<p>
-						Maximum money sent = <span style="font-weight: bold">{{statement.sentMax}}</span><br>
-					<p>
-						Maximum money received = <span style="font-weight: bold">{{statement.receivedMax}}</span><br>
-					<p>
-						Best User who sent maximum total amount = <span
-							style="font-weight: bold">{{statement.bestSentUser}}</span><br>
-					<p>
-						Best User who received maximum total amount = <span
-							style="font-weight: bold">{{statement.bestreceivedUser}}</span><br>
+					<lable> <span style="font-weight: bold">From Date: </span></lable>
+					<input type="date" ng-model="fromDate" /><br> <br>
+					<lable> <span style="font-weight: bold">To Date:
+						&nbsp&nbsp&nbsp&nbsp</span></lable>
+					<input type="date" ng-model="toDate" /><br> <br>
+					</lable>
+					<lable> <span style="font-weight: bold">SSN:
+						&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</span></lable>
+					<input type="text" ng-model="ssn" placeholder="Enter SSN" /><br>
+					<input type="button" class="btn btn-primary"
+						ng-click="getStatement()" value="GetStatement"></a><br> <br>
+					<br> <br>
+				</div>
+				<div>
+					<span ng-show="showStmtDetails">
+						<p>
+							Total money sent = <span style="font-weight: bold">{{statement.sentSum}}</span><br>
+						<p>
+							Total money received = <span style="font-weight: bold">{{statement.receivedSum}}</span><br>
+						<p>
+							Average money sent = <span style="font-weight: bold">{{statement.sentAvg}}</span><br>
+						<p>
+							Average money received = <span style="font-weight: bold">{{statement.receivedAvg}}</span><br>
+						<p>
+							Maximum money sent = <span style="font-weight: bold">{{statement.sentMax}}</span><br>
+						<p>
+							Maximum money received = <span style="font-weight: bold">{{statement.receivedMax}}</span><br>
+						<p>
+							Best User who sent maximum total amount = <span
+								style="font-weight: bold">{{statement.bestSentUser}}</span><br>
+						<p>
+							Best User who received maximum total amount = <span
+								style="font-weight: bold">{{statement.bestreceivedUser}}</span><br>
+						</p>
+					</span>
 				</div>
 			</div>
 
 			<div id="Activities" class="tabcontent">
-				<!-- <input type="button" class="btn btn-primary" ng-click="getRequests()" value="Activities"></a> -->
-				<table border="1">
-					<tr>
-						<th>Requester Name</th>
-						<th>Requested Amount</th>
-					</tr>
-					<tr ng-repeat="reqTxn in reqTxns">
-						<td>{{reqTxn.name}}</td>
-						<td>{{reqTxn.amount}}</td>
-					</tr>
-				</table>
+				<span ng-show="showPendingReqInput"> <input type="text"
+					id="ssn" class="form-control" placeholder="Enter ssn"
+					ng-model="signInUserSSN" style="width: 400px; height: 30px"><br>
+					<input type="button" class="btn btn-primary"
+					ng-click="getPendingReq()" value="Verify"
+					style="width: 200px; height: 30px"></span></a><br>
+				<br>
+				<br>
+				<br> <span ng-show="showPendingReqTxns">
+					<table border="1">
+						<tr>
+							<th>Requester Name</th>
+							<th>Requested Amount</th>
+							<th>Send</th>
+							<th>Decline</th>
+						</tr>
+						<tr ng-repeat="reqTxn in reqTxns">
+							<td>{{reqTxn.name}}</td>
+							<td>{{reqTxn.amount}}</td>
+							<td><input type="button" class=""
+								ng-click="sendRequestedMoney(reqTxn.ssn, reqTxn.rtId, reqTxn.amount)"
+								value="Send"></td>
+							<td><input type="button" class=""
+								ng-click="declineRequestedMoney(reqTxn.rtId)" value="Decline"></td>
+						</tr>
+					</table>
+				</span>
 			</div>
-		</div>
-	</form>
+			<!-- </div> -->
 
-	<form>
-		<div class="box3">
-			<div class="tab">
-				<button class="tablinks" ng-click="openCity(event, 'AccountInfo')">Account
-					Info</button>
-				<div>
-					<div id="AccountInfo" class="tabcontent"><br><br><br>
-					<p>Name : <span>{{user.name}}</span></p>
-					<p>Phone Number : <span>{{user.phoneNo}}</span></p>
-					<p>Email Id: <span ng-repeat="emailId in emailIdList">{{emailId}}<span>, </span></span></p>
-					
-						<div class="tab">
-							<div>
-								<button ng-click="addOrRemovePno()">Add/Remove PhoneNumber</button><br>
-								<div>
-									<span ng-show = "canShowMenu1"><input type="text" id="phoneNumber" class="form-control" placeholder="Enter phone number" ng-model="phoneNo"></span>
-									<span ng-show = "canShowMenu1"><input type="button" class="btn btn-primary" ng-click="updatePno()" value="Update"></span>
-									<span ng-show = "canShowMenu1"><input type="button" class="btn btn-primary" ng-click="deletePno()" value="Delete"></span>
-								</div>
-							</div>
-							<div>
-								<button ng-click="addOrRemoveEmail()">Add/Remove Email</button>
-								<div>
-									<span ng-show = "canShowMenu2"><input type="email" id="emailId" class="form-control" placeholder="Enter emailId" ng-model="emailId"></span>
-									<span ng-show = "canShowMenu2"><input type="button" class="btn btn-primary" ng-click="addEmailId()" value="Add"></span>
-									<span ng-show = "canShowMenu2"><input type="button" class="btn btn-primary" ng-click="deleteEmailId()" value="Delete"></span><br>
-								</div>
-							</div>
-							<div>
-								<button ng-click="addOrRemoveBankAccount()">Add/Remove Bank Account</button>
-								<div>
-									<span ng-show = "canShowMenu3"><input type="number" id="bankId" class="form-control" placeholder="Bank Id" ng-model="bankId"></span><br>
-									<span ng-show = "canShowMenu3"><input type="number" id="bankAccNumber" class="form-control" placeholder="Bank Acc Number" ng-model="bankAccNumber"></span>
-									<span ng-show = "canShowMenu3"><input type="button" class="btn btn-primary" ng-click="addBankDetail()" value="Add"></span>
-									<span ng-show = "canShowMenu3"><input type="button" class="btn btn-primary" ng-click="deleteBankDetail()" value="Delete"></span><br>
-								</div>
-							</div>
+			<div id="AccountInfo" class="tabcontent">
+				<span ng-show="inputUserDetails"> <input type="text" id="ssn"
+					class="form-control" placeholder="Enter ssn"
+					ng-model="currentLoggedInUserSsn"
+					style="width: 400px; height: 30px"><br> <input
+					type="button" class="btn btn-primary" ng-click="getUserDetails()"
+					value="Verify" style="width: 200px; height: 30px"></span></a><br>
+				<br>
+				<br>
+				<br> <span ng-show="showUserDetails"> <!-- <div  class="box"> -->
+					<div class="tab">
+
+						<button>User Details :</button>
+						<lable> Name : </lable>
+						<span>{{user.name}}</span><br>
+
+						<lable>Phone Number : </lable>
+						<span>{{user.phoneNo}}</span><br>
+
+						<lable>Email Id: </lable>
+						<span ng-repeat="emailId in emailIdList">{{emailId}}<span>,</span></span><br>
+						<br>
+
+						<button ng-click="addOrRemovePno()">Add/Remove
+							PhoneNumber</button>
+						<br>
+						<br>
+						<br>
+						<div>
+							<span ng-show="canShowMenu1"> <input type="text"
+								id="phoneNumber" class="form-control"
+								placeholder="Enter phone number" ng-model="phoneNo"
+								style="width: 400px; height: 30px"></span> <span
+								ng-show="canShowMenu1"> <input type="button"
+								class="btn btn-primary" ng-click="updatePno()" value="Update"
+								style="width: 150px; height: 30px"></span> <span
+								ng-show="canShowMenu1"> <input type="button"
+								class="btn btn-primary" ng-click="deletePno()" value="Delete"
+								style="width: 150px; height: 30px"></span>
+						</div>
+
+						<button ng-click="addOrRemoveEmail()">Add/Remove Email</button>
+						<br>
+						<br>
+						<div>
+							<span ng-show="canShowMenu2"><input type="email"
+								id="emailId" class="form-control" placeholder="Enter emailId"
+								ng-model="emailId" style="width: 400px; height: 30px"></span> <span
+								ng-show="canShowMenu2"><input type="button"
+								class="btn btn-primary" ng-click="addEmailId()" value="Add"
+								style="width: 150px; height: 30px"></span> <span
+								ng-show="canShowMenu2"><input type="button"
+								class="btn btn-primary" ng-click="deleteEmailId()"
+								value="Delete" style="width: 150px; height: 30px"></span><br>
+						</div>
+						<button ng-click="addOrRemoveBankAccount()">Add/Remove
+							Bank Account</button>
+						<div>
+							<span ng-show="canShowMenu3"><input type="number"
+								id="bankId" class="form-control" placeholder="Bank Id"
+								ng-model="bankId" style="width: 400px; height: 30px"></span><br>
+							<span ng-show="canShowMenu3"><input type="number"
+								id="bankAccNumber" class="form-control"
+								placeholder="Bank Acc Number" ng-model="bankAccNumber"
+								style="width: 400px; height: 30px"></span> <span
+								ng-show="canShowMenu3"><input type="button"
+								class="btn btn-primary" ng-click="addBankDetail()" value="Add"
+								style="width: 150px; height: 30px"></span> <span
+								ng-show="canShowMenu3"><input type="button"
+								class="btn btn-primary" ng-click="deleteBankDetail()"
+								value="Delete" style="width: 150px; height: 30px"></span><br>
 						</div>
 					</div>
-					<div id="EditProfile" class="tabcontent">
-						<input type="text" id="fromUser" class="form-control"
-							placeholder="Enter phoneNum, email from user" ng-model="fromUser"><br>
-						<input type="text" id="toUser" class="form-control"
-							placeholder="Enter phoneNum, email to user" ng-model="toUser"><br>
-						<input type="text" id="amount" class="form-control"
-							placeholder="Enter amount to send" ng-model="amount"><br>
-						<input type="text" id="memo" class="form-control"
-							placeholder="Enter memo" ng-model="memo"><br> <input
-							type="button" class="btn btn-primary" ng-click="sendMoney()"
-							value="Send"></a>
-					</div>
-
-					<div id="Request" class="tabcontent">
-						<input type="text" id="requestorIdentifierr" class="form-control"
-							placeholder="Enter phoneNum, email from user"
-							ng-model="requestorIdentifier"><br> <input
-							type="text" id="requesteeIdentifier" class="form-control"
-							placeholder="Enter phoneNum, email to user"
-							ng-model="requesteeIdentifier"><br> <input
-							type="text" id="rtAmount" class="form-control"
-							placeholder="Enter amount to request" ng-model="rtAmount"><br>
-						<input type="text" id="rtMemo" class="form-control"
-							placeholder="Enter memo" ng-model="rtMemo"><br> <input
-							type="button" class="btn btn-primary" ng-click="requestMoney()"
-							value="Request"></a>
-					</div>
-
-					<div id="Split" class="tabcontent">
-						<input type="text" id="userIdentifier" class="form-control"
-							placeholder="Enter a Phone number or emailId to receive money"
-							ng-model="loggedInUserIdentifier"><br> <input
-							type="text" id="splitwith" class="form-control"
-							placeholder="Enter comma seperated phone number or email"
-							ng-model="splitwithIdentifiers"><br> <input
-							type="text" id="splitAmount" class="form-control"
-							placeholder="Enter amount to split" ng-model="amountToSplit"><br>
-						<input type="button" class="btn btn-primary" ng-click="split()"
-							value="Split"></a>
-					</div>
-				</div>
+				</span>
 			</div>
 		</div>
 	</form>

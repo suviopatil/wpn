@@ -62,43 +62,72 @@ public class BankingService {
 	private FromUserRepo fromUserRepo;
 
 	@Transactional
-	public ResponseEntity<?> sendMoney(String senderIdentifier, String receiverIdentifier, String amountToSend, String memo) throws ParseException {
+	public ResponseEntity<?> sendMoney(String senderIdentifier, String receiverIdentifier, String amountToSend, String memo) throws Exception {
 
 		String currentUserBalance = null;
-		UserAccount reciepentUsers = getUserByIdentifier(receiverIdentifier);
-
-		if (!ObjectUtils.isEmpty(reciepentUsers)) {
-			UserAccount senderUser = getUserByIdentifier(senderIdentifier);
-			currentUserBalance = senderUser.getAccountBalance();
-			Double senderUpdatedBalance = Double.valueOf(currentUserBalance) - Double.valueOf(amountToSend);
-			WPNRepo.updateAccountBalance(senderUpdatedBalance.toString(), senderUser.getSsn());
-			Double receiverUpdatedBalance = Double.valueOf(reciepentUsers.getAccountBalance()) + Double.valueOf(amountToSend);
-			WPNRepo.updateAccountBalance(receiverUpdatedBalance.toString(), reciepentUsers.getSsn());
-			WPNRepo.saveSentTransaction(senderUser.getSsn(), receiverIdentifier, amountToSend, memo);
-			return new ResponseEntity<>(response("Amount Successfully sent"), HttpStatus.OK);
-		} else {
+		try {
+			UserAccount reciepentUsers = getUserByIdentifier(receiverIdentifier);
+	
+			if (!ObjectUtils.isEmpty(reciepentUsers)) {
+				UserAccount senderUser = getUserByIdentifier(senderIdentifier);
+				currentUserBalance = senderUser.getAccountBalance();
+				if(Double.valueOf(currentUserBalance)<Double.valueOf(amountToSend)) {
+					return new ResponseEntity<>(response("Insufficient balance"), HttpStatus.NOT_FOUND);
+				}
+				Double senderUpdatedBalance = Double.valueOf(currentUserBalance) - Double.valueOf(amountToSend);
+				WPNRepo.updateAccountBalance(senderUpdatedBalance.toString(), senderUser.getSsn());
+				Double receiverUpdatedBalance = Double.valueOf(reciepentUsers.getAccountBalance()) + Double.valueOf(amountToSend);
+				WPNRepo.updateAccountBalance(receiverUpdatedBalance.toString(), reciepentUsers.getSsn());
+				WPNRepo.saveSentTransaction(senderUser.getSsn(), receiverIdentifier, amountToSend, memo);
+			} else {
+				return new ResponseEntity<>(response("Recipient does not exists"), HttpStatus.NOT_FOUND);
+			}
+		}catch(ParseException e){
+			return new ResponseEntity<>(response(e.getMessage()), HttpStatus.NOT_FOUND);
+		}
+		catch(Exception e){
 			return new ResponseEntity<>(response("Couldn't send amount"), HttpStatus.NOT_FOUND);
 		}
-
-	}
-
-	@Transactional
-	public ResponseEntity<?> sendRequestedMoney(String senderIdentifier, String receiverIdentifier, String amountToSend,
-			Long rtId) throws ParseException {
-		sendMoney(senderIdentifier, receiverIdentifier, amountToSend, "Welcome");
-		WPNRepo.updateReqTrnxStatus("Confirmed", rtId);
-
 		return new ResponseEntity<>(response("Amount Successfully sent"), HttpStatus.OK);
 	}
 
 	@Transactional
-	public ResponseEntity<?> requestMoney(String requesteeIdentifier, String requestorIdentifier, String memo,
-			String reqAmount) throws ParseException {
+	public ResponseEntity<?> sendRequestedMoney(String loggenInUserSsn, String requesterSsn, String amountToSend,
+			Long rtId) throws Exception {
+		sendMoney(loggenInUserSsn, requesterSsn, amountToSend, "Welcome");
+		WPNRepo.updateReqTrnxStatus("Confirmed", rtId);
+
+		return new ResponseEntity<>(response("Amount Successfully sent"), HttpStatus.OK);
+	}
+	
+	@Transactional
+	public ResponseEntity<?> declineRequestedMoney(Long rtId){
+		try {
+			WPNRepo.updateStatusToDecline("Decline", rtId);
+		}catch(Exception e) {
+			return new ResponseEntity<>(response("Could not Decline request"), HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<>(response("Request Declined"), HttpStatus.OK);
+	}
+
+	@Transactional
+	public ResponseEntity<?> requestMoney(String requestorIdentifier, String requesteeIdentifier , String memo,
+			String reqAmount){
 		LocalTime time = LocalTime.now();
 		Long rtId = (long) time.getNano();
-		UserAccount requestor = getUserByIdentifier(requestorIdentifier);
-		WPNRepo.saveRequestTransaction(rtId, reqAmount, memo, requestor.getSsn(), "Pending");
-		WPNRepo.saveFromTransaction(rtId, requesteeIdentifier, memo);
+		try {
+			UserAccount requestee = getUserByIdentifier(requesteeIdentifier);
+			if(ObjectUtils.isEmpty(requestee)) {
+				return new ResponseEntity<>(response("Requestee does not exists"), HttpStatus.NOT_FOUND);
+			}
+			
+			UserAccount requestor = getUserByIdentifier(requestorIdentifier);
+			WPNRepo.saveRequestTransaction(rtId, reqAmount, memo, requestor.getSsn(), "Pending");
+			WPNRepo.saveFromTransaction(rtId, requesteeIdentifier, memo);
+		}
+		catch(Exception e) {
+			return new ResponseEntity<>(response("Could not request amount"), HttpStatus.NOT_FOUND);
+		}
 		return new ResponseEntity<>(response("Amount requested Successfully"), HttpStatus.OK);
 	}
 
@@ -257,13 +286,16 @@ public class BankingService {
 		return new ResponseEntity<>(response("Successfully logged in"), HttpStatus.OK);
 	}
 
-	public ResponseEntity<?> getRequests(String identifier) {
+	public ResponseEntity<?> getPendingReq(String loggedInUserSsn) {
+		List<String> identifier = getAllIdentifiers(loggedInUserSsn);
 		List<String> pendingRequests = reqTranxRepo.findReqTransactionsByIdentifier(identifier);
 		List<PendingRequest> response = new ArrayList<>();
 		for (int i = 0; i < pendingRequests.size(); i++) {
 			PendingRequest pendingRequest = new PendingRequest();
-			pendingRequest.setName(pendingRequests.get(i).split(",", 0)[0]);
-			pendingRequest.setAmount(pendingRequests.get(i).split(",", 0)[1]);
+			pendingRequest.setSsn(pendingRequests.get(i).split(",", 0)[0]);
+			pendingRequest.setName(pendingRequests.get(i).split(",", 0)[1]);
+			pendingRequest.setRtId(pendingRequests.get(i).split(",", 0)[2]);
+			pendingRequest.setAmount(pendingRequests.get(i).split(",", 0)[3]);
 			response.add(pendingRequest);
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
@@ -290,14 +322,16 @@ public class BankingService {
 	}
 
 	private UserAccount getUserByIdentifier(String identifier) {
-		UserAccount users = null;
+		UserAccount user = null;
 		if (identifier.contains("@")) {
 			String receiverSSN = emailRepo.findSsnByEmail(identifier);
-			users = userAcctRepo.findUserBySSN(receiverSSN);
-		} else {
-			users = userAcctRepo.findUserByPhoneNumber(identifier);
+			user = userAcctRepo.findUserBySSN(receiverSSN);
+		} else if(identifier.length() == 9 || identifier.length() == 11) {
+			user = userAcctRepo.findUserBySSN(identifier);
+		}else {
+			user = userAcctRepo.findUserByPhoneNumber(identifier);
 		}
-		return users;
+		return user;
 	}
 
 }
