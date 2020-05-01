@@ -365,4 +365,8 @@ app.controller("homeController", function($scope, $http, $window) {
         );
 	}
 	
+	$scope.signOut = function(){
+		 $window.location.href = '/login';
+	}
+	
 });

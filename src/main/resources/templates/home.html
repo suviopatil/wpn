@@ -11,6 +11,8 @@
 
 <link rel="stylesheet"
 	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <script src="js/home.js"></script>
 </head>
@@ -26,8 +28,10 @@
 					ng-click="openCity(event, 'TransationHistory')">TransationHistory</button>
 				<button class="tablinks" ng-click="openCity(event, 'Activities')">Activities</button>
 				<button class="tablinks" ng-click="openCity(event, 'AccountInfo')">
-					<i class="fa fa-home"></i> Account Info
+					<i class="fa fa-user-circle"></i> User Info
 				</button>
+					<button class="tablinks" ng-click="signOut()">Sign out</button>
+				
 			</div>
 			<div id="Send" class="tabcontent">
 				<input type="text" id="fromUser" class="form-control"
