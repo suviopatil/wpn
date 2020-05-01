@@ -27,6 +27,6 @@ app.controller("LoginController", function($scope, $http, $window) {
     function _error(res) {
     	var data = res.data;
         var status = res.status;
-        alert("Invalid User");
+        $window.location.href = '/loginFailure';
     }
 });

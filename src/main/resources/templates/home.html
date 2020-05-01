@@ -32,13 +32,13 @@
 			<div id="Send" class="tabcontent">
 				<input type="text" id="fromUser" class="form-control"
 					style="width: 400px; height: 30px"
-					placeholder="Enter phoneNum, email from user" ng-model="fromUser"><br>
+					placeholder="Enter phoneNum, email from user" ng-model="fromUser" required><br>
 				<input type="text" id="toUser" class="form-control"
 					style="width: 400px; height: 30px"
-					placeholder="Enter phoneNum, email to user" ng-model="toUser"><br>
+					placeholder="Enter phoneNum, email to user" ng-model="toUser" required><br>
 				<input type="text" id="amount" class="form-control"
 					style="width: 400px; height: 30px"
-					placeholder="Enter amount to send" ng-model="amount"><br>
+					placeholder="Enter amount to send" ng-model="amount" required><br>
 				<input type="text" id="memo" class="form-control"
 					style="width: 400px; height: 30px" placeholder="Enter memo"
 					ng-model="memo"><br> <input type="button"
@@ -79,13 +79,13 @@
 			</div>
 			<div id="TransationHistory" class="tabcontent">
 				<lable> <span style="font-weight: bold">From Date: </span></lable>
-				<input type="date" ng-model="fromDate" /> <br> <br>
+				<input type="date" ng-model="fromDate" required/> <br> <br>
 				<lable> <span style="font-weight: bold">To Date:
 					&nbsp&nbsp&nbsp&nbsp</span></lable>
-				<input type="date" ng-model="toDate" /><br> <br>
+				<input type="date" ng-model="toDate" required/><br> <br>
 				<lable> <span style="font-weight: bold">SSN:
 					&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</span></lable>
-				<input type="text" ng-model="txnIdentifier" /><br> <input
+				<input type="text" ng-model="loggedInUserSsn" required/><br> <input
 					type="button" class="btn btn-primary" ng-click="getTransactions()"
 					value="SearchTransaction"></a><br> <br> <br> <br>
 				<br> <span ng-show="showTxnHistory">

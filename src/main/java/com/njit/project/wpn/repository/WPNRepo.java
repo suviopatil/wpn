@@ -75,9 +75,9 @@ public class WPNRepo {
 			.executeUpdate();
 	}
 	
-	public void deleteBankDetails(Integer bankId, Long accountNumber) {
+	public Integer deleteBankDetails(Integer bankId, Long accountNumber) {
 		String query = "DELETE FROM BANKACCOUNT WHERE BANKID=?1 AND ACCOUNTNUMBER=?2";
-		em.createNativeQuery(query)
+		return em.createNativeQuery(query)
 			.setParameter(1, bankId)
 			.setParameter(2, accountNumber)
 			.executeUpdate();

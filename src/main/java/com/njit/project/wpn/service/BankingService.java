@@ -64,6 +64,9 @@ public class BankingService {
 	@Transactional
 	public ResponseEntity<?> sendMoney(String senderIdentifier, String receiverIdentifier, String amountToSend, String memo) throws Exception {
 
+		if(StringUtils.isBlank(senderIdentifier) && StringUtils.isBlank(receiverIdentifier) && StringUtils.isBlank(amountToSend)) {
+			return new ResponseEntity<>(response("One or more empty input(s)"), HttpStatus.NOT_FOUND);
+		}
 		String currentUserBalance = null;
 		try {
 			UserAccount reciepentUsers = getUserByIdentifier(receiverIdentifier);
@@ -95,7 +98,7 @@ public class BankingService {
 	public ResponseEntity<?> sendRequestedMoney(String loggenInUserSsn, String requesterSsn, String amountToSend,
 			Long rtId) throws Exception {
 		sendMoney(loggenInUserSsn, requesterSsn, amountToSend, "Welcome");
-		WPNRepo.updateReqTrnxStatus("Confirmed", rtId);
+		WPNRepo.updateReqTrnxStatus("Sent", rtId);
 
 		return new ResponseEntity<>(response("Amount Successfully sent"), HttpStatus.OK);
 	}
@@ -103,7 +106,7 @@ public class BankingService {
 	@Transactional
 	public ResponseEntity<?> declineRequestedMoney(Long rtId){
 		try {
-			WPNRepo.updateStatusToDecline("Decline", rtId);
+			WPNRepo.updateStatusToDecline("Declined", rtId);
 		}catch(Exception e) {
 			return new ResponseEntity<>(response("Could not Decline request"), HttpStatus.NOT_FOUND);
 		}
@@ -111,8 +114,12 @@ public class BankingService {
 	}
 
 	@Transactional
-	public ResponseEntity<?> requestMoney(String requestorIdentifier, String requesteeIdentifier , String memo,
-			String reqAmount){
+	public ResponseEntity<?> requestMoney(String requestorIdentifier, String requesteeIdentifier , String memo, String reqAmount){
+		
+		if(StringUtils.isBlank(requestorIdentifier) && StringUtils.isBlank(requesteeIdentifier) && StringUtils.isBlank(reqAmount)) {
+			return new ResponseEntity<>(response("One or more empty input(s)"), HttpStatus.NOT_FOUND);
+		}
+		
 		LocalTime time = LocalTime.now();
 		Long rtId = (long) time.getNano();
 		try {
@@ -131,30 +138,36 @@ public class BankingService {
 		return new ResponseEntity<>(response("Amount requested Successfully"), HttpStatus.OK);
 	}
 
-	public ResponseEntity<?> findTransactions(String txnIdentifier, String fromDate, String toDate) throws Exception {
-		String loggedInUserSsn = null;
+	public ResponseEntity<?> findTransactions(String loggedInUserSsn, String fromDate, String toDate) {
+		
+		if(StringUtils.isBlank(loggedInUserSsn) && StringUtils.isBlank(fromDate) && StringUtils.isBlank(toDate)) {
+			return new ResponseEntity<>(response("One or more empty input(s)"), HttpStatus.NOT_FOUND);
+		}
+		
 		List<String> loggedInUserIdentifier = new ArrayList<>();
 		List<SendTransaction> sentTransaction = new ArrayList<>();
-		List<SendTransaction> receivedTransaction = new ArrayList<>();
-		String formattedFromDate = formattedDateTime(fromDate);
-		String formattedtoDate = formattedDateTime(toDate);
-		if (StringUtils.isNotBlank(txnIdentifier)) {
-			if ((txnIdentifier.length() == 9 || txnIdentifier.length() == 11) && !txnIdentifier.contains("@")) {
-				loggedInUserSsn = txnIdentifier;
+		try {
+			if (StringUtils.isNotBlank(loggedInUserSsn) && StringUtils.isNotBlank(fromDate) && StringUtils.isNotBlank(toDate)) {
+				String formattedFromDate = formattedDateTime(fromDate);
+				String formattedtoDate = formattedDateTime(toDate);
+				if(ObjectUtils.isEmpty(userAcctRepo.findUserBySSN(loggedInUserSsn))) {
+					return new ResponseEntity<>(response("Invalid SSN"), HttpStatus.NOT_FOUND);
+				}
 				loggedInUserIdentifier = getAllIdentifiers(loggedInUserSsn);
-			} else {
-				UserAccount user = getUserByIdentifier(txnIdentifier);
-				loggedInUserSsn = user.getSsn();
-				loggedInUserIdentifier = getAllIdentifiers(loggedInUserSsn);
+				sentTransaction = transactionRepo.findSentTransactions(loggedInUserSsn, formattedFromDate, formattedtoDate);
+				List<SendTransaction> receivedTransaction = transactionRepo.findReceivedTransactions(loggedInUserIdentifier, formattedFromDate, formattedtoDate);
+				sentTransaction.addAll(receivedTransaction);
+			}else {
+				return new ResponseEntity<>(response("One or more empty input(s)"), HttpStatus.NOT_FOUND);
 			}
-			sentTransaction = transactionRepo.findSentTransactions(loggedInUserSsn, formattedFromDate, formattedtoDate);
-			receivedTransaction = transactionRepo.findReceivedTransactions(loggedInUserIdentifier, formattedFromDate, formattedtoDate);
-			sentTransaction.addAll(receivedTransaction);
+		} catch (Exception e) {
+			return new ResponseEntity<>(response(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+		
 		return new ResponseEntity<>(sentTransaction, HttpStatus.OK);
 	}
 	
-	private List<String> getAllIdentifiers(String loggedInUserSsn){
+	private List<String> getAllIdentifiers(String loggedInUserSsn) throws Exception{
 		List<String> loggedInUserIdentifier = new ArrayList<>();
 		UserAccount user = userAcctRepo.findUserBySSN(loggedInUserSsn);
 		List<String> emialIds = emailRepo.findEmailBySsn(loggedInUserSsn);
@@ -164,14 +177,25 @@ public class BankingService {
 	}
 	
 	public ResponseEntity<?> getStatement(String loggedInUserSsn, String fromDate, String toDate) throws ParseException {
+		
+		if(StringUtils.isBlank(loggedInUserSsn) && StringUtils.isBlank(fromDate) && StringUtils.isBlank(toDate)) {
+			return new ResponseEntity<>(response("One or more empty input(s)"), HttpStatus.NOT_FOUND);
+		}
+		
 		String formattedFromDate = formattedDateTime(fromDate);
 		String formattedtoDate = formattedDateTime(toDate);
-		List<String> loggedInUserIdentifier = getAllIdentifiers(loggedInUserSsn);
-		List<String> SumAvgMax_Sent = transactionRepo.getSumAvgMaxSentAmount(loggedInUserSsn, formattedFromDate, formattedtoDate);
-		List<String> bestSentUser = transactionRepo.getBestSentUser(loggedInUserIdentifier, formattedFromDate, formattedtoDate);
-		List<String> SumAvgMax_Received = transactionRepo.getSumAvgMaxReceivedAmount(loggedInUserIdentifier, formattedFromDate, formattedtoDate);
-		List<String> bestReceivedUser = transactionRepo.getBestReceivedUser(loggedInUserSsn, formattedFromDate, formattedtoDate);
-		JSONObject response = formJsonResponseObject(SumAvgMax_Sent, bestSentUser, SumAvgMax_Received, bestReceivedUser);
+		List<String> loggedInUserIdentifier;
+		JSONObject response = new JSONObject();
+		try {
+			loggedInUserIdentifier = getAllIdentifiers(loggedInUserSsn);
+			List<String> SumAvgMax_Sent = transactionRepo.getSumAvgMaxSentAmount(loggedInUserSsn, formattedFromDate, formattedtoDate);
+			List<String> bestSentUser = transactionRepo.getBestSentUser(loggedInUserIdentifier, formattedFromDate, formattedtoDate);
+			List<String> SumAvgMax_Received = transactionRepo.getSumAvgMaxReceivedAmount(loggedInUserIdentifier, formattedFromDate, formattedtoDate);
+			List<String> bestReceivedUser = transactionRepo.getBestReceivedUser(loggedInUserSsn, formattedFromDate, formattedtoDate);
+			response = formJsonResponseObject(SumAvgMax_Sent, bestSentUser, SumAvgMax_Received, bestReceivedUser);
+		} catch (Exception e) {
+			return new ResponseEntity<>(response("Could not retrieve statement"), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 		return new ResponseEntity<>(response.toString(), HttpStatus.OK);
 	}
 
@@ -218,15 +242,38 @@ public class BankingService {
 
 	@Transactional
 	public ResponseEntity<?> addEmailId(String loggedInUserSsn, String emailId) {
-		WPNRepo.addNewUserEmailId(emailId, loggedInUserSsn);
-		WPNRepo.addNewUserIdentifier(emailId);
+		
+		try {
+			if(StringUtils.isBlank(loggedInUserSsn) && StringUtils.isBlank(emailId)) {
+				return new ResponseEntity<>(response("Please enter emailId"), HttpStatus.NOT_FOUND);
+			}else if(StringUtils.isNotBlank(emailRepo.findSsnByEmail(emailId))){
+				return new ResponseEntity<>(response("emailId already exists"), HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			
+			WPNRepo.addNewUserEmailId(emailId, loggedInUserSsn);
+			WPNRepo.addNewUserIdentifier(emailId);
+		} catch (Exception e) {
+			return new ResponseEntity<>(response("Could not add emailId"), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
 		return new ResponseEntity<>(response("EmailId added successfully"), HttpStatus.OK);
 	}
 	
 	@Transactional
 	public ResponseEntity<?> deleteEmailId(String emailId) {
-		WPNRepo.deleteUserEmailId(emailId);
-		WPNRepo.deleteUserIdentifier(emailId);
+		try {
+			if(StringUtils.isBlank(emailId)) {
+				return new ResponseEntity<>(response("Please enter emailId"), HttpStatus.NOT_FOUND);
+			}else if(StringUtils.isBlank(emailRepo.findSsnByEmail(emailId))){
+				return new ResponseEntity<>(response("emailId does not exists"), HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			
+			WPNRepo.deleteUserEmailId(emailId);
+			WPNRepo.deleteUserIdentifier(emailId);
+		} catch (Exception e) {
+			return new ResponseEntity<>(response("Could not delete emailId"), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
 		return new ResponseEntity<>(response("EmailId Deleted successfully"), HttpStatus.OK);
 	}
 	
@@ -237,6 +284,11 @@ public class BankingService {
 	
 	@Transactional
 	public ResponseEntity<?> splitAmount(String loggedInUserIdentifier, String amountToSplit, String splitwithIdentifiers) throws ParseException {
+		
+		if(StringUtils.isBlank(loggedInUserIdentifier) && StringUtils.isBlank(amountToSplit) && StringUtils.isBlank(splitwithIdentifiers)) {
+			return new ResponseEntity<>(response("One or more empty input(s)"), HttpStatus.NOT_FOUND);
+		}
+		
 		Integer amountToSplitInt = Integer.parseInt(amountToSplit);
 		String loggedInUserSsn = getUserByIdentifier(loggedInUserIdentifier).getSsn();
 		String[] arrOfStr = splitwithIdentifiers.split(",",0);
@@ -254,13 +306,17 @@ public class BankingService {
 
 	@Transactional
 	public ResponseEntity<?> updatePno(String phoneNo,String loggedInUserSsn) throws Exception{
+
 		try {
+			if(StringUtils.isBlank(phoneNo)) {
+				return new ResponseEntity<>(response("phoneNo is empty"), HttpStatus.NOT_FOUND);
+			}else if(!ObjectUtils.isEmpty(userAcctRepo.findUserByPhoneNumber(phoneNo))){
+				return new ResponseEntity<>(response("Phone number is not Unique"), HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 			WPNRepo.updatePno(phoneNo,loggedInUserSsn);
 			return new ResponseEntity<>(response("Phone number updated successfully"), HttpStatus.OK);
-		}catch (ConstraintViolationException e) {
-			return new ResponseEntity<>(response("Phone number is not Unique"), HttpStatus.BAD_GATEWAY);
 		}catch (Exception e) {
-			return new ResponseEntity<>(response("Phone number was not updated"), HttpStatus.BAD_GATEWAY);
+			return new ResponseEntity<>(response("Phone number was not updated"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		
 	}
@@ -279,6 +335,10 @@ public class BankingService {
 	}
 
 	public ResponseEntity<?> login(String ssn, String password) {
+		if(StringUtils.isBlank(ssn) && StringUtils.isBlank(password)) {
+			return new ResponseEntity<>(response("One or more empty input(s)"), HttpStatus.NOT_FOUND);
+		}
+		
 		UserAccount userAccount = userAcctRepo.findBySsnAndPwd(ssn, password);
 		if (ObjectUtils.isEmpty(userAccount)) {
 			return new ResponseEntity<>(response("User Not Found"), HttpStatus.NOT_FOUND);
@@ -287,8 +347,13 @@ public class BankingService {
 	}
 
 	public ResponseEntity<?> getPendingReq(String loggedInUserSsn) {
-		List<String> identifier = getAllIdentifiers(loggedInUserSsn);
-		List<String> pendingRequests = reqTranxRepo.findReqTransactionsByIdentifier(identifier);
+		List<String> loggedInUserIdentifier = new ArrayList<>();
+		try {
+			loggedInUserIdentifier = getAllIdentifiers(loggedInUserSsn);
+		} catch (Exception e) {
+			return new ResponseEntity<>(response("Invalid User SSN"), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		List<String> pendingRequests = reqTranxRepo.findReqTransactionsByIdentifier(loggedInUserIdentifier);
 		List<PendingRequest> response = new ArrayList<>();
 		for (int i = 0; i < pendingRequests.size(); i++) {
 			PendingRequest pendingRequest = new PendingRequest();
@@ -303,15 +368,32 @@ public class BankingService {
 	
 	@Transactional
 	public ResponseEntity<?> addBankDetail(String loggedInUserSsn, Integer bankId, Long bankAccNumber) {
-		WPNRepo.addNewAccount(bankId, bankAccNumber);
-		WPNRepo.hasAdditionalAcc(loggedInUserSsn, bankId, bankAccNumber, "true");
+		try {
+			if(StringUtils.isBlank(bankId.toString()) && StringUtils.isBlank(bankAccNumber.toString())) {
+				return new ResponseEntity<>(response("One or more empty input(s)"), HttpStatus.NOT_FOUND);
+			}
+			WPNRepo.addNewAccount(bankId, bankAccNumber);
+			WPNRepo.hasAdditionalAcc(loggedInUserSsn, bankId, bankAccNumber, "true");
+		} catch (Exception e) {
+			return new ResponseEntity<>(response("could not add Bank details"), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 		return new ResponseEntity<>(response("Successfully Added Bank details"), HttpStatus.OK);
 	}
 	
 	@Transactional
 	public ResponseEntity<?> deleteBankDetail(String loggedInUserSsn, Integer bankId, Long bankAccNumber) {
-		WPNRepo.deleteBankDetails(bankId, bankAccNumber);
-		WPNRepo.deleteAdditionalAccDetails(loggedInUserSsn, bankId, bankAccNumber);
+		try {
+			if(StringUtils.isBlank(bankId.toString()) && StringUtils.isBlank(bankAccNumber.toString())) {
+				return new ResponseEntity<>(response("One or more empty input(s)"), HttpStatus.NOT_FOUND);
+			}
+			Integer count = WPNRepo.deleteBankDetails(bankId, bankAccNumber);
+			if(count==0) {
+				return new ResponseEntity<>(response("bank details do not exist"), HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			WPNRepo.deleteAdditionalAccDetails(loggedInUserSsn, bankId, bankAccNumber);
+		} catch (Exception e) {
+			return new ResponseEntity<>(response("could not delete Bank details"), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 		return new ResponseEntity<>(response("Successfully Deleted Bank details"), HttpStatus.OK);
 	}
 

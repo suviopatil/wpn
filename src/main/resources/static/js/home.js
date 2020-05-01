@@ -138,27 +138,27 @@ app.controller("homeController", function($scope, $http, $window) {
     }
 	
 	$scope.getTransactions = function() {
-		$scope.showTxnHistory = true;
 		$http({
             method: 'GET',
             url: '/wpn/searchTransactions',
             params : {
-            	"txnIdentifier" : $scope.txnIdentifier,
+            	"loggedInUserSsn" : $scope.loggedInUserSsn,
 				"fromDate" : $scope.fromDate,
 				"toDate" : $scope.toDate
 			}
         }).then(
-            function(res) { // success
+            function(res) { 
+            	$scope.showTxnHistory = true;
                 $scope.transactions = res.data;
             },
-            function(res) { // error
+            function(res) { 
+            	$scope.showTxnHistory = false;
             	alert(res.data.response);
             }
         );
 	}
 	
 	$scope.getStatement = function() {
-		$scope.showStmtDetails = true;
 		$http({
             method: 'GET',
             url: '/wpn/getStatement',
@@ -169,9 +169,11 @@ app.controller("homeController", function($scope, $http, $window) {
 			}
         }).then(
             function(res) { // success
+            	$scope.showStmtDetails = true;
                 $scope.statement = res.data;
             },
             function(res) { // error
+            	$scope.showStmtDetails = false;
             	alert(res.data.response);
             }
         );

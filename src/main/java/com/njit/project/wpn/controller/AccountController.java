@@ -99,12 +99,12 @@ public class AccountController {
 
 	@RequestMapping(value = "/searchTransactions", method = RequestMethod.GET)
 	public ResponseEntity<?> getSentTransaction(
-			@RequestParam(value = "txnIdentifier", required = false) String txnIdentifier,
+			@RequestParam(value = "loggedInUserSsn", required = false) String loggedInUserSsn,
 			@RequestParam(value = "fromDate", required = false) String fromDate,
 			@RequestParam(value = "toDate", required = false) String toDate)
 			throws Exception {
 
-		return bankingService.findTransactions(txnIdentifier, fromDate, toDate);
+		return bankingService.findTransactions(loggedInUserSsn, fromDate, toDate);
 	}
 	
 	@RequestMapping(value = "/getStatement", method = RequestMethod.GET)
